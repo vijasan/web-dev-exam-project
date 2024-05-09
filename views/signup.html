@@ -2,25 +2,27 @@
 
 <div class="m-4">
     <h1>Signup partner form</h1>
-    <form action="" method="post">
+    <!-- todo: needs backend validation -->
+    <form id="frm_user">
         <div>
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" pattern="[a-zA-Z\s'\-]+" required title="Name should only contain letters, apostrophes, dashes, and spaces.">
+            <input type="text" name="user_username" pattern="[a-zA-Z\s'\-]+" required title="Name should only contain letters, apostrophes, dashes, and spaces.">
         </div>
         <div>
             <label for="email">Email:</label>
-            <input type="text" id="email" name="email" required >
+            <input type="text" name="user_email" required >
         </div>
         <div>
             <label for="password">Password:</label>
-            <input type="text" id="password" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
+            <input type="text" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
         </div>
         <div>
             <label for="password">Confirm Password:</label>
-            <input type="text" id="password" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
+            <input type="text" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
         </div>
         <div>
-            <button type="submit">Signup</button>
+            <!-- submit might break it, we will see... -->
+            <button type="submit" mix-post="/users" mix-data="#frm_user" mix-default="Create user" mix-await="Please wait...">Signup</button>
         </div>
     </form>
 </div>

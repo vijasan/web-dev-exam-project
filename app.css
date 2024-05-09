@@ -612,10 +612,6 @@ video {
   z-index: 10;
 }
 
-.m-8 {
-  margin: 2rem;
-}
-
 .m-4 {
   margin: 1rem;
 }
@@ -640,10 +636,6 @@ video {
 
 .mt-2 {
   margin-top: 0.5rem;
-}
-
-.mt-12 {
-  margin-top: 3rem;
 }
 
 .block {

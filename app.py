@@ -58,6 +58,15 @@ def _():
     finally:
         if "db" in locals(): db.close()
 
+@get("/signup")
+def _():
+    try:
+        return template("signup.html")
+    except Exception as ex:
+        print("there was a problem loading the page")
+        print(ex)
+        return ex
+
 
 ##############################
 @get("/items/page/<page_number>")

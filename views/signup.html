@@ -1,1 +1,29 @@
-<h1>Dette er en signup page</h1>
+%include("_header")
+
+<div class="m-4">
+    <h1>Signup partner form</h1>
+    <form action="" method="post">
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" pattern="[a-zA-Z\s'\-]+" required title="Name should only contain letters, apostrophes, dashes, and spaces.">
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required >
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="text" id="password" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
+        </div>
+        <div>
+            <label for="password">Confirm Password:</label>
+            <input type="text" id="password" name="password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must contain at least one number, one uppercase and lowercase letter, and at least 8 or more characters">
+        </div>
+        <div>
+            <button type="submit">Signup</button>
+        </div>
+    </form>
+</div>
+
+%include("_footer")
+

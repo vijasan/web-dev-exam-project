@@ -58,6 +58,47 @@ def _():
     finally:
         if "db" in locals(): db.close()
 
+@get("/signup")
+def _():
+    try:
+        return template("signup.html")
+    except Exception as ex:
+        print("there was a problem loading the page")
+        print(ex)
+        return ex
+    
+@post("/users")
+def _():
+    try:
+        username = x.validate_user_username() # validation of username using method from x.py file
+        email = x.validate_email() # validation of user_last_name using method from x.py file
+        ic(username) # this is ice cream it displays error codes when something goes wrong
+        ic(email) # this is ice cream it displays error codes when something goes wrong
+        user = {"username":username, "email":email} # defines a user by saving user as a document
+        res = {"query":"INSERT @doc IN users RETURN NEW", "bindVars":{"doc":user}} # inserts a user via AQL query language, via the db method in the x.py file
+        item = x.arango(res)
+        return item
+        # html = template("_user.html", user=res["result"][0]) # not sure, a HTML template that is used for displaying a user?
+        # form_create_user =  template("_form_create_user.html") # template again
+        # return f"""
+        # <template mix-target="#users" mix-top>
+        #     {html}
+        # </template>
+        # <template mix-target="#frm_user" mix-replace>
+        #     {form_create_user}
+        # </template>
+        # """
+    except Exception as ex:
+        ic(ex)
+        if "user_name" in str(ex):
+            return f"""
+            <template mix-target="#message">
+                {ex.args[1]}
+            </template>
+            """            
+    finally:
+        pass
+
 
 ##############################
 @get("/items/page/<page_number>")

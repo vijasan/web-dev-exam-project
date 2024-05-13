@@ -1,0 +1,1 @@
+Remeber to add the user collection in arangoDB otherwise signup won't work

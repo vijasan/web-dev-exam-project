@@ -612,6 +612,10 @@ video {
   z-index: 10;
 }
 
+.m-4 {
+  margin: 1rem;
+}
+
 .mx-4 {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -790,6 +794,10 @@ video {
 
 .max-w-screen-xl {
   max-width: 1280px;
+}
+
+  .w-1\/2 {
+  width: 50%;
 }
 
 .grid-cols-1 {
@@ -1069,6 +1077,14 @@ video {
 
 .font-semibold {
   font-weight: 600;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.lowercase {
+  text-transform: lowercase;
 }
 
 .text-neutral-900 {

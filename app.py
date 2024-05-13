@@ -271,9 +271,9 @@ def _():
     try:
         # TODO: validate
         item_name = request.forms.get("item_name", "")
-        item_data= {"name":item_name}
-        q = {   "query": "INSERT @item_data INTO items RETURN NEW",
-                "bindVars":{"item_data":item_data}
+        item = {"name":item_name}
+        q = {   "query": "INSERT @item INTO items RETURN NEW",
+                "bindVars":{"item":item}
              }
         item = x.arango(q)
         return item
@@ -283,14 +283,15 @@ def _():
     finally:
         pass
 
+
 ##############################
 @put("/arango/items/<key>")
 def _(key):
     try:
         # TODO: validate
         item_name = request.forms.get("item_name", "")
-        item_key = {"_key": key}
-        item_data = {"name":item_name}
+        item_key = { "_key" : key }
+        item_data = { "name" : item_name }
         q = {   "query": "UPDATE @item_key WITH @item_data IN items RETURN NEW",
                 "bindVars":{"item_key":item_key, "item_data":item_data}
              }
@@ -303,16 +304,28 @@ def _(key):
         pass
 
 ##############################
+@get("/rooms/<id>")
+def _(id):
+    try:
+        db = x.db()
+        q = db.execute("SELECT * FROM items WHERE item_pk = ?", (id,))
+        item = q.fetchone()
+        title = "Item "+id
+        ic(item)
+        return template("rooms",
+                        id=id, 
+                        title=title,
+                        item=item)
+    except Exception as ex:
+        print(ex)
+        return "error"
+    finally:
+        pass
+
+##############################
+
 try:
     import production
     application = default_app()
 except:
     run(host="0.0.0.0", port=80, debug=True, reloader=True, interval=0)
-
-
-
-
-
-
-
-

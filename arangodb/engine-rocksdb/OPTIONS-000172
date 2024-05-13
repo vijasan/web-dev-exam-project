@@ -71,7 +71,11 @@
   wal_filter=nullptr
   table_cache_numshardbits=6
   dump_malloc_stats=false
+<<<<<<<< HEAD:arangodb/engine-rocksdb/OPTIONS-000172
   db_write_buffer_size=2337056358
+========
+  db_write_buffer_size=2456174592
+>>>>>>>> vj:arangodb/engine-rocksdb/OPTIONS-000179
   allow_ingest_behind=false
   keep_log_file_num=1000
   max_bgerror_resume_count=2147483647

@@ -266,7 +266,10 @@ def _():
         item_id = request.forms.get("item_id", '')
         return f"""
         <template mix-target="[id='{item_id}']" mix-replace>
-            xxxxx
+       
+            <button>
+                Unblock
+            </button>
         </template>
         """
     except Exception as ex:

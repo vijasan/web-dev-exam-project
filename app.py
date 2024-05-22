@@ -61,7 +61,7 @@ def _():
 @get("/signup")
 def _():
     try:
-        return template("signup.html")
+        return template("signup_wu_mixhtml.html")
     except Exception as ex:
         print("there was a problem loading the page")
         print(ex)

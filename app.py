@@ -174,7 +174,34 @@ def _(page_number):
 @get("/login")
 def _():
     x.no_cache()
-    return template("login.html")
+    return template("login_wu_mixhtml.html")
+
+@post("/login_arango")
+def login():
+    try:
+        user_email = request.forms.get("user_email")
+        print(user_email)
+        user_password = request.forms.get("user_password")
+        print(user_password)
+
+        res = {
+            "query": "FOR user IN users FILTER user.user_email == @email RETURN user",
+            "bindVars": {"email": user_email}
+        }
+        query_result = x.arango(res)
+        users = query_result.get("result", [])
+
+        if users:
+            for user in users:
+                if user_email == user.get("user_email") and user_password == user.get("user_password"):
+                    return "login success"
+
+        return "login failed - incorrect email or password"
+    except Exception as ex:
+        print("An error occurred:", ex)
+        return "An error occurred while processing your request"
+    finally:
+        pass
 
 
 ##############################
@@ -232,58 +259,58 @@ def _():
 #     return "signup"
 
 
-##############################
-@post("/login")
-def _():
-    try:
-        user_email = x.validate_email()
-        user_password = x.validate_password()
-        db = x.db()
-        q = db.execute("SELECT * FROM users WHERE user_email = ? LIMIT 1", (user_email,))
-        user = q.fetchone()
-        if not user: raise Exception("user not found", 400)
-        if not bcrypt.checkpw(user_password.encode(), user["user_password"].encode()): raise Exception("Invalid credentials", 400)
-        user.pop("user_password") # Do not put the user's password in the cookie
-        ic(user)
-        try:
-            import production
-            is_cookie_https = True
-        except:
-            is_cookie_https = False        
-        response.set_cookie("user", user, secret=x.COOKIE_SECRET, httponly=True, secure=is_cookie_https)
+# ##############################
+# @post("/login")
+# def _():
+#     try:
+#         user_email = x.validate_email()
+#         user_password = x.validate_password()
+#         db = x.db()
+#         q = db.execute("SELECT * FROM users WHERE user_email = ? LIMIT 1", (user_email,))
+#         user = q.fetchone()
+#         if not user: raise Exception("user not found", 400)
+#         if not bcrypt.checkpw(user_password.encode(), user["user_password"].encode()): raise Exception("Invalid credentials", 400)
+#         user.pop("user_password") # Do not put the user's password in the cookie
+#         ic(user)
+#         try:
+#             import production
+#             is_cookie_https = True
+#         except:
+#             is_cookie_https = False        
+#         response.set_cookie("user", user, secret=x.COOKIE_SECRET, httponly=True, secure=is_cookie_https)
         
-        frm_login = template("__frm_login")
-        return f"""
-        <template mix-target="frm_login" mix-replace>
-            {frm_login}
-        </template>
-        <template mix-redirect="/profile">
-        </template>
-        """
-    except Exception as ex:
-        try:
-            response.status = ex.args[1]
-            return f"""
-            <template mix-target="#toast">
-                <div mix-ttl="3000" class="error">
-                    {ex.args[0]}
-                </div>
-            </template>
-            """
-        except Exception as ex:
-            ic(ex)
-            response.status = 500
-            return f"""
-            <template mix-target="#toast">
-                <div mix-ttl="3000" class="error">
-                   System under maintainance
-                </div>
-            </template>
-            """
+#         frm_login = template("__frm_login")
+#         return f"""
+#         <template mix-target="frm_login" mix-replace>
+#             {frm_login}
+#         </template>
+#         <template mix-redirect="/profile">
+#         </template>
+#         """
+#     except Exception as ex:
+#         try:
+#             response.status = ex.args[1]
+#             return f"""
+#             <template mix-target="#toast">
+#                 <div mix-ttl="3000" class="error">
+#                     {ex.args[0]}
+#                 </div>
+#             </template>
+#             """
+#         except Exception as ex:
+#             ic(ex)
+#             response.status = 500
+#             return f"""
+#             <template mix-target="#toast">
+#                 <div mix-ttl="3000" class="error">
+#                    System under maintainance
+#                 </div>
+#             </template>
+#             """
         
 
-    finally:
-        if "db" in locals(): db.close()
+#     finally:
+#         if "db" in locals(): db.close()
 
 
 ##############################

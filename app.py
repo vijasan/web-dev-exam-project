@@ -76,6 +76,8 @@ def _():
         print("email received: " + email)
         password = x.validate_password()
         print("password received: " + password)
+        selected_option = request.forms.get("option")
+        print(selected_option)
         
         ic(username) # this is ice cream it displays error codes when something goes wrong
         ic(password)
@@ -84,7 +86,7 @@ def _():
         # Hash the password using bcrypt
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         
-        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8')} # Save the hashed password
+        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8'), "role": selected_option} # Save the hashed password
         res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file
         item = x.arango(res)
         

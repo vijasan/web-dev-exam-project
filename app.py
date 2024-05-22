@@ -71,17 +71,23 @@ def _():
 def _():
     try:
         username = x.validate_user_username() # validation of username using method from x.py file
-        print("username recived: " + username)
-        email = x.validate_email() # validation of user_last_name using method from x.py file
-        print("email recived: " + email)
+        print("username received: " + username)
+        email = x.validate_email() # validation of email using method from x.py file
+        print("email received: " + email)
         password = x.validate_password()
-        print("password recived: " + password)
+        print("password received: " + password)
+        
         ic(username) # this is ice cream it displays error codes when something goes wrong
         ic(password)
         ic(email) # this is ice cream it displays error codes when something goes wrong
-        user = {"username":username, "user_email":email, "user_password":password} # defines a user by saving user as a document
-        res = {"query":"INSERT @doc IN users RETURN NEW", "bindVars":{"doc":user}} # inserts a user via AQL query language, via the db method in the x.py file
+        
+        # Hash the password using bcrypt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8')} # Save the hashed password
+        res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file
         item = x.arango(res)
+        
         return template("login.html")
     except Exception as ex:
         ic(ex)
@@ -185,15 +191,18 @@ def login():
         print(user_password)
 
         res = {
-            "query": "FOR user IN users FILTER user.user_email == @email RETURN user",
-            "bindVars": {"email": user_email}
+            "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
+            "bindVars": {"user_email": user_email}
         }
         query_result = x.arango(res)
         users = query_result.get("result", [])
 
         if users:
             for user in users:
-                if user_email == user.get("user_email") and user_password == user.get("user_password"):
+                stored_hashed_password = user.get("user_password")
+
+                # Verify the provided password with the stored hashed password
+                if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
                     return "login success"
 
         return "login failed - incorrect email or password"

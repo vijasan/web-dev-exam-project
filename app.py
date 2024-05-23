@@ -39,25 +39,28 @@ def _(item_splash_image):
 @get("/")
 def _():
     try:
-        db = x.db()
-        q = db.execute("SELECT * FROM items ORDER BY item_created_at LIMIT 0, ?", (x.ITEMS_PER_PAGE,))
-        items = q.fetchall()
+        x.setup_collection()
+        # Fetch items from the ArangoDB collection 'items'
+        query = {
+            "query": "FOR item IN items SORT item.item_created_at LIMIT @limit RETURN item",
+            "bindVars": {"limit": x.ITEMS_PER_PAGE}
+        }
+        result = x.arango(query)
+        items = result.get("result", [])
         ic(items)
         is_logged = False
-        try:    
+        try:
             x.validate_user_logged()
             is_logged = True
         except:
             pass
 
-        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, 
-                        is_logged=is_logged)
+        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged)
     except Exception as ex:
         ic(ex)
-        return ex
+        return str(ex)
     finally:
-        if "db" in locals(): db.close()
-
+        pass
 @get("/signup")
 def _():
     try:
@@ -125,7 +128,7 @@ def _():
         # """
     except Exception as ex:
         ic(ex)
-        if "user_name" in str(ex):
+        if "username" in str(ex):
             return f"""
             <template mix-target="#message">
                 {ex.args[1]}

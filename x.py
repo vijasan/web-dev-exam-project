@@ -4,6 +4,9 @@ import re
 import sqlite3
 from icecream import ic
 import requests
+import json
+import smtplib
+from email.mime.text import MIMEText
 
 ITEMS_PER_PAGE = 2
 COOKIE_SECRET = "41ebeca46f3b-4d77-a8e2-554659075C6319a2fbfb-9a2D-4fb6-Afcad32abb26a5e0"

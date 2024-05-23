@@ -39,33 +39,71 @@ def _(item_splash_image):
 @get("/")
 def _():
     try:
-        db = x.db()
-        q = db.execute("SELECT * FROM items ORDER BY item_created_at LIMIT 0, ?", (x.ITEMS_PER_PAGE,))
-        items = q.fetchall()
+        x.setup_collection()
+        # Fetch items from the ArangoDB collection 'items'
+        query = {
+            "query": "FOR item IN items SORT item.item_created_at LIMIT @limit RETURN item",
+            "bindVars": {"limit": x.ITEMS_PER_PAGE}
+        }
+        result = x.arango(query)
+        items = result.get("result", [])
         ic(items)
         is_logged = False
-        try:    
+        try:
             x.validate_user_logged()
             is_logged = True
         except:
             pass
 
-        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, 
-                        is_logged=is_logged)
+        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged)
     except Exception as ex:
         ic(ex)
-        return ex
+        return str(ex)
     finally:
-        if "db" in locals(): db.close()
-
+        pass
 @get("/signup")
 def _():
     try:
-        return template("signup.html")
+        return template("signup_wu_mixhtml.html")
     except Exception as ex:
         print("there was a problem loading the page")
         print(ex)
         return ex
+
+@post("/signup")
+def _():
+    try:
+        username = x.validate_user_username() # validation of username using method from x.py file
+        print("username received: " + username)
+        email = x.validate_email() # validation of email using method from x.py file
+        print("email received: " + email)
+        password = x.validate_password()
+        print("password received: " + password)
+        selected_option = request.forms.get("option")
+        print(selected_option)
+        
+        ic(username) # this is ice cream it displays error codes when something goes wrong
+        ic(password)
+        ic(email) # this is ice cream it displays error codes when something goes wrong
+        
+        # Hash the password using bcrypt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8'), "role": selected_option} # Save the hashed password
+        res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file
+        item = x.arango(res)
+        
+        return template("login.html")
+    except Exception as ex:
+        ic(ex)
+        if "user_name" in str(ex):
+            return f"""
+            <template mix-target="#message">
+                {ex.args[1]}
+            </template>
+            """            
+    finally:
+        pass
     
 @post("/users")
 def _():
@@ -90,7 +128,7 @@ def _():
         # """
     except Exception as ex:
         ic(ex)
-        if "user_name" in str(ex):
+        if "username" in str(ex):
             return f"""
             <template mix-target="#message">
                 {ex.args[1]}
@@ -104,16 +142,23 @@ def _():
 @get("/items/page/<page_number>")
 def _(page_number):
     try:
-        db = x.db()
-        next_page = int(page_number) + 1
-        offset = (int(page_number) - 1) * x.ITEMS_PER_PAGE
-        q = db.execute(f"""     SELECT * FROM items 
-                                ORDER BY item_created_at 
-                                LIMIT ? OFFSET {offset}
-                        """, (x.ITEMS_PER_PAGE,))
-        items = q.fetchall()
+        page_number = int(page_number)
+        if page_number < 1:
+            raise ValueError("Page number must be greater than 0")
+        
+        offset = (page_number - 1) * x.ITEMS_PER_PAGE
+        query = {
+            "query": "FOR item IN items SORT item.item_created_at LIMIT @offset, @limit RETURN item",
+            "bindVars": {
+                "offset": offset,
+                "limit": x.ITEMS_PER_PAGE
+            }
+        }
+        result = x.arango(query)
+        items = result.get("result", [])
         ic(items)
 
+        html = ""
         is_logged = False
         try:
             x.validate_user_logged()
@@ -121,12 +166,14 @@ def _(page_number):
         except:
             pass
 
-        html = ""
-        for item in items: 
+        for item in items:
             html += template("_item", item=item, is_logged=is_logged)
+        
+        next_page = page_number + 1
         btn_more = template("__btn_more", page_number=next_page)
-        if len(items) < x.ITEMS_PER_PAGE: 
+        if len(items) < x.ITEMS_PER_PAGE:
             btn_more = ""
+
         return f"""
         <template mix-target="#items" mix-bottom>
             {html}
@@ -140,14 +187,44 @@ def _(page_number):
         ic(ex)
         return "ups..."
     finally:
-        if "db" in locals(): db.close()
+        pass
 
 
 ##############################
 @get("/login")
 def _():
     x.no_cache()
-    return template("login.html")
+    return template("login_wu_mixhtml.html")
+
+@post("/login_arango")
+def login():
+    try:
+        user_email = request.forms.get("user_email")
+        print(user_email)
+        user_password = request.forms.get("user_password")
+        print(user_password)
+
+        res = {
+            "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
+            "bindVars": {"user_email": user_email}
+        }
+        query_result = x.arango(res)
+        users = query_result.get("result", [])
+
+        if users:
+            for user in users:
+                stored_hashed_password = user.get("user_password")
+
+                # Verify the provided password with the stored hashed password
+                if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+                    return "login success"
+
+        return "login failed - incorrect email or password"
+    except Exception as ex:
+        print("An error occurred:", ex)
+        return "An error occurred while processing your request"
+    finally:
+        pass
 
 
 ##############################
@@ -188,75 +265,75 @@ def _():
 ##############################
 ##############################
 ##############################
-@post("/signup")
-def _():
-    # password = b'password'
-    # # Adding the salt to password
-    # salt = bcrypt.gensalt()
-    # # Hashing the password
-    # hashed = bcrypt.hashpw(password, salt)
-    # # printing the salt
-    # print("Salt :")
-    # print(salt)
+# @post("/signup")
+# def _():
+#     # password = b'password'
+#     # # Adding the salt to password
+#     # salt = bcrypt.gensalt()
+#     # # Hashing the password
+#     # hashed = bcrypt.hashpw(password, salt)
+#     # # printing the salt
+#     # print("Salt :")
+#     # print(salt)
     
-    # # printing the hashed
-    # print("Hashed")
-    # print(hashed)    
-    return "signup"
+#     # # printing the hashed
+#     # print("Hashed")
+#     # print(hashed)    
+#     return "signup"
 
 
-##############################
-@post("/login")
-def _():
-    try:
-        user_email = x.validate_email()
-        user_password = x.validate_password()
-        db = x.db()
-        q = db.execute("SELECT * FROM users WHERE user_email = ? LIMIT 1", (user_email,))
-        user = q.fetchone()
-        if not user: raise Exception("user not found", 400)
-        if not bcrypt.checkpw(user_password.encode(), user["user_password"].encode()): raise Exception("Invalid credentials", 400)
-        user.pop("user_password") # Do not put the user's password in the cookie
-        ic(user)
-        try:
-            import production
-            is_cookie_https = True
-        except:
-            is_cookie_https = False        
-        response.set_cookie("user", user, secret=x.COOKIE_SECRET, httponly=True, secure=is_cookie_https)
+# ##############################
+# @post("/login")
+# def _():
+#     try:
+#         user_email = x.validate_email()
+#         user_password = x.validate_password()
+#         db = x.db()
+#         q = db.execute("SELECT * FROM users WHERE user_email = ? LIMIT 1", (user_email,))
+#         user = q.fetchone()
+#         if not user: raise Exception("user not found", 400)
+#         if not bcrypt.checkpw(user_password.encode(), user["user_password"].encode()): raise Exception("Invalid credentials", 400)
+#         user.pop("user_password") # Do not put the user's password in the cookie
+#         ic(user)
+#         try:
+#             import production
+#             is_cookie_https = True
+#         except:
+#             is_cookie_https = False        
+#         response.set_cookie("user", user, secret=x.COOKIE_SECRET, httponly=True, secure=is_cookie_https)
         
-        frm_login = template("__frm_login")
-        return f"""
-        <template mix-target="frm_login" mix-replace>
-            {frm_login}
-        </template>
-        <template mix-redirect="/profile">
-        </template>
-        """
-    except Exception as ex:
-        try:
-            response.status = ex.args[1]
-            return f"""
-            <template mix-target="#toast">
-                <div mix-ttl="3000" class="error">
-                    {ex.args[0]}
-                </div>
-            </template>
-            """
-        except Exception as ex:
-            ic(ex)
-            response.status = 500
-            return f"""
-            <template mix-target="#toast">
-                <div mix-ttl="3000" class="error">
-                   System under maintainance
-                </div>
-            </template>
-            """
+#         frm_login = template("__frm_login")
+#         return f"""
+#         <template mix-target="frm_login" mix-replace>
+#             {frm_login}
+#         </template>
+#         <template mix-redirect="/profile">
+#         </template>
+#         """
+#     except Exception as ex:
+#         try:
+#             response.status = ex.args[1]
+#             return f"""
+#             <template mix-target="#toast">
+#                 <div mix-ttl="3000" class="error">
+#                     {ex.args[0]}
+#                 </div>
+#             </template>
+#             """
+#         except Exception as ex:
+#             ic(ex)
+#             response.status = 500
+#             return f"""
+#             <template mix-target="#toast">
+#                 <div mix-ttl="3000" class="error">
+#                    System under maintainance
+#                 </div>
+#             </template>
+#             """
         
 
-    finally:
-        if "db" in locals(): db.close()
+#     finally:
+#         if "db" in locals(): db.close()
 
 
 ##############################
@@ -362,6 +439,168 @@ def _(id):
         return "error"
     finally:
         pass
+
+##############################
+@get("/users")
+def _():
+    try:
+        q = {"query": "FOR user IN users RETURN user"}
+        users = x.arango(q)
+        ic(users)
+        return template("users", users=users["result"])
+    except Exception as ex:
+        ic(ex)
+        return {"error": str(ex)}
+
+##############################
+@get("/users/<key>")
+def get_user(key):
+    try:
+        q = {"query": "FOR user IN users FILTER user._key == @key RETURN user", "bindVars": {"key": key}}
+        users = x.arango(q)
+        if not users:
+            response.status = 404
+            return {"error": "User not found"}
+        user = users[0]  # ArangoDB returns a list of results
+        ic(user)
+        return template("index", users=users["result"])
+    except Exception as ex:
+        ic(ex)
+        return {"error": str(ex)}
+##############################
+@delete("/users/<key>")
+def _(key):
+    try:
+        # Regex validation for key
+        if not re.match(r"^[1-9]\d*$", key):
+            return "Invalid key format"
+
+        ic(key)
+        res = x.arango({"query":"""
+                    FOR user IN users
+                    FILTER user._key == @key
+                    REMOVE user IN users RETURN OLD""", 
+                    "bindVars":{"key":key}})
+        print(res)
+        return f"""
+        <template mix-target="[id='{key}']" mix-replace>
+            <div class="mix-fade-out user_deleted" mix-ttl="2000">User deleted</div>
+        </template>
+        """
+    except Exception as ex:
+        ic(ex)
+        return "An error occurred"
+    finally:
+        pass
+
+##############################
+@put("/users/<key>")
+def _(key):
+    try:
+        username = x.validate_user_username()
+        email = x.validate_email()
+        res = x.arango({"query":"""
+                        UPDATE { _key: @key, username: @username, email: @email} 
+                        IN users 
+                        RETURN NEW""",
+                    "bindVars":{
+                        "key": f"{key}",
+                        "username":f"{username}",
+                        "email":f"{email}"
+                    }})
+        print(res)
+        return f"""
+        <template mix-target="[id='{key}']" mix-before>
+            <div class="mix-fade-out user_deleted" mix-ttl="2000">User updated</div>            
+        </template>
+        """
+    except Exception as ex:
+        ic(ex)
+        if "username" in str(ex):
+            return f"""
+            <template mix-target="#message">
+                {ex.args[1]}
+            </template>
+            """ 
+    finally:
+        pass
+##############################
+
+@get("/forgot-password")
+def forgot_password():
+    return template("forgot-password.html")
+
+##############################
+@post("/forgot-password")
+def handle_forgot_password():
+    try:
+        email = request.forms.get("email")
+        user_query = {
+            "query": "FOR user IN users FILTER user.email == @user_email RETURN user",
+            "bindVars": {"user_email": email}
+        }
+        user = x.arango(user_query)
+        if not user["result"]:
+            raise Exception("Email not found")
+
+        user = user["result"][0]
+        x.send_reset_email(email, user["_key"])
+
+        return "Password reset email sent"
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+    
+##############################
+@get("/reset-password/<key>")
+def reset_password(key):
+    try:
+        query = {
+            "query": "FOR user IN users FILTER user._key == @key RETURN user",
+            "bindVars": {"key": key}
+        }
+        result = x.arango(query)
+        users = result.get("result", [])
+        if not users:
+            response.status = 404
+            return {"error": "User not found"}
+        
+        user = users[0]  # There should be only one item with the specified ID
+        ic(user)
+        
+        return template("reset-password.html", key=key, user=user)
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+
+##############################
+@put("/reset-password/<key>")
+def handle_reset_password(key):
+    try:
+        password = request.forms.get("password")
+        confirm_password = request.forms.get("confirm_password")
+
+        if password != confirm_password:
+            return "Passwords do not match"
+        
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+        update_query = {
+            "query": """
+                UPDATE { _key: @key, password: @password }
+                IN users
+            """,
+            "bindVars": {
+                "key": key,
+                "password": hashed_password
+            }
+        }
+        x.arango(update_query)
+
+        return "Password reset successfully"
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
 
 ##############################
 

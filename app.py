@@ -291,10 +291,11 @@ def _():
 ##############################
 @get("/logout")
 def _():
-    response.delete_cookie("user")
-    response.status = 303
-    response.set_header('Location', '/login')
-    return
+    user_session_id = request.get_cookie("user_session_id")
+    if user_session_id in sessions:
+        del sessions[user_session_id]
+    response.delete_cookie("user_session_id")
+    return home()
 
 
 ##############################

@@ -23,16 +23,5 @@
         <span>
             nat
         </span>
-        % if get("is_logged", False):
-            <form id="{{rooms['_key']}}">
-                <input name="item_id" type="text" value="{{item['_key']}}">
-                <button
-                    mix-data="[id='{{item['_key']}}']"
-                    mix-post="/toogle_item_block"
-                >
-                    Block
-                </button>
-            </form>
-        % end
     </div>
 </div>

@@ -11,6 +11,7 @@ from icecream import ic
 import bcrypt
 import json
 import credentials
+import uuid
 
 ##############################
 @get("/app.css")
@@ -37,7 +38,7 @@ def _(item_splash_image):
 
 ##############################
 @get("/")
-def _():
+def home():
     try:
         x.setup_collection()
         # Fetch items from the ArangoDB collection 'items'
@@ -192,12 +193,14 @@ def _(page_number):
 
 ##############################
 @get("/login")
-def _():
+def login():
     x.no_cache()
     return template("login_wu_mixhtml.html")
 
+sessions = {}
+
 @post("/login_arango")
-def login():
+def login_post():
     try:
         user_email = request.forms.get("user_email")
         print(user_email)
@@ -217,14 +220,18 @@ def login():
 
                 # Verify the provided password with the stored hashed password
                 if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
-                    return "login success"
+                    user_session_id = str(uuid.uuid4())
+                    sessions[user_session_id] = user
+                    print("#"*30)
+                    print(sessions)
+                    response.set_cookie("user_session_id", user_session_id)
+                    return home()
 
-        return "login failed - incorrect email or password"
+        return login()
+        # return "login failed - incorrect email or password"
     except Exception as ex:
         print("An error occurred:", ex)
         return "An error occurred while processing your request"
-    finally:
-        pass
 
 
 ##############################

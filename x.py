@@ -188,6 +188,47 @@ def setup_collection():
         pass
 
 ##############################
+
+def setup_users():
+    try:
+        # Check if the 'items' collection exists using the HTTP API
+        url = "http://arangodb:8529/_api/collection/users"
+        res = requests.get(url)
+        ic(res)
+        ic(res.text)
+
+        if res.status_code == 200:
+            ic("Collection 'items' already exists.")
+            return
+
+        # Create the 'items' collection
+        url = "http://arangodb:8529/_api/collection"
+        collection_data = {"name": "users"}
+        res = requests.post(url, json=collection_data)
+        ic(res)
+        ic(res.text)
+
+        if res.status_code == 200:
+            # Insert items.json data into the 'items' collection
+            with open("users.json", "r") as f:
+                users = json.load(f)
+
+            for user in users:
+                query = {
+                    "query": "INSERT @user INTO users",
+                    "bindVars": {"user": user}
+                }
+                arango(query)
+
+            ic("Collection 'users' created and populated with data.")
+        else:
+            ic("Failed to create the 'items' collection.")
+    except Exception as ex:
+        print("#" * 50)
+        print(ex)
+    finally:
+        pass
+##############################
 def send_reset_email(email, key):
     from_email = 'joeybidenisbased@gmail.com'
     from_password = 'tdvi euik qgsa bzdf'

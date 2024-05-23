@@ -40,6 +40,7 @@ def _(item_splash_image):
 @get("/")
 def home():
     try:
+        x.setup_users()
         x.setup_collection()
         # Fetch items from the ArangoDB collection 'items'
         query = {

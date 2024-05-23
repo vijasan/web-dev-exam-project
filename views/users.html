@@ -1,0 +1,12 @@
+%include("_header")
+<main class="max-w-screen-md lg:max-w-6xl my-0 mx-auto pb-10">
+    <h1>Users</h1>
+    <div id="users">
+        % for user in users:
+            % include("_user.html")
+        % end
+    </div>
+    <p id="message"></p>
+</main>
+
+% include("_footer")

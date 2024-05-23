@@ -429,6 +429,168 @@ def _(id):
         pass
 
 ##############################
+@get("/users")
+def _():
+    try:
+        q = {"query": "FOR user IN users RETURN user"}
+        users = x.arango(q)
+        ic(users)
+        return template("users", users=users["result"])
+    except Exception as ex:
+        ic(ex)
+        return {"error": str(ex)}
+
+##############################
+@get("/users/<key>")
+def get_user(key):
+    try:
+        q = {"query": "FOR user IN users FILTER user._key == @key RETURN user", "bindVars": {"key": key}}
+        users = x.arango(q)
+        if not users:
+            response.status = 404
+            return {"error": "User not found"}
+        user = users[0]  # ArangoDB returns a list of results
+        ic(user)
+        return template("index", users=users["result"])
+    except Exception as ex:
+        ic(ex)
+        return {"error": str(ex)}
+##############################
+@delete("/users/<key>")
+def _(key):
+    try:
+        # Regex validation for key
+        if not re.match(r"^[1-9]\d*$", key):
+            return "Invalid key format"
+
+        ic(key)
+        res = x.arango({"query":"""
+                    FOR user IN users
+                    FILTER user._key == @key
+                    REMOVE user IN users RETURN OLD""", 
+                    "bindVars":{"key":key}})
+        print(res)
+        return f"""
+        <template mix-target="[id='{key}']" mix-replace>
+            <div class="mix-fade-out user_deleted" mix-ttl="2000">User deleted</div>
+        </template>
+        """
+    except Exception as ex:
+        ic(ex)
+        return "An error occurred"
+    finally:
+        pass
+
+##############################
+@put("/users/<key>")
+def _(key):
+    try:
+        username = x.validate_user_username()
+        email = x.validate_email()
+        res = x.arango({"query":"""
+                        UPDATE { _key: @key, username: @username, email: @email} 
+                        IN users 
+                        RETURN NEW""",
+                    "bindVars":{
+                        "key": f"{key}",
+                        "username":f"{username}",
+                        "email":f"{email}"
+                    }})
+        print(res)
+        return f"""
+        <template mix-target="[id='{key}']" mix-before>
+            <div class="mix-fade-out user_deleted" mix-ttl="2000">User updated</div>            
+        </template>
+        """
+    except Exception as ex:
+        ic(ex)
+        if "username" in str(ex):
+            return f"""
+            <template mix-target="#message">
+                {ex.args[1]}
+            </template>
+            """ 
+    finally:
+        pass
+##############################
+
+@get("/forgot-password")
+def forgot_password():
+    return template("forgot-password.html")
+
+##############################
+@post("/forgot-password")
+def handle_forgot_password():
+    try:
+        email = request.forms.get("email")
+        user_query = {
+            "query": "FOR user IN users FILTER user.email == @user_email RETURN user",
+            "bindVars": {"user_email": email}
+        }
+        user = x.arango(user_query)
+        if not user["result"]:
+            raise Exception("Email not found")
+
+        user = user["result"][0]
+        x.send_reset_email(email, user["_key"])
+
+        return "Password reset email sent"
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+    
+##############################
+@get("/reset-password/<key>")
+def reset_password(key):
+    try:
+        query = {
+            "query": "FOR user IN users FILTER user._key == @key RETURN user",
+            "bindVars": {"key": key}
+        }
+        result = x.arango(query)
+        users = result.get("result", [])
+        if not users:
+            response.status = 404
+            return {"error": "User not found"}
+        
+        user = users[0]  # There should be only one item with the specified ID
+        ic(user)
+        
+        return template("reset-password.html", key=key, user=user)
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+
+##############################
+@put("/reset-password/<key>")
+def handle_reset_password(key):
+    try:
+        password = request.forms.get("password")
+        confirm_password = request.forms.get("confirm_password")
+
+        if password != confirm_password:
+            return "Passwords do not match"
+        
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+        update_query = {
+            "query": """
+                UPDATE { _key: @key, password: @password }
+                IN users
+            """,
+            "bindVars": {
+                "key": key,
+                "password": hashed_password
+            }
+        }
+        x.arango(update_query)
+
+        return "Password reset successfully"
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+
+##############################
 
 try:
     import production

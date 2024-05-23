@@ -12,6 +12,12 @@ import bcrypt
 import json
 import credentials
 import uuid
+import random
+import string
+from send_email import send_verification_email
+
+def generate_verification_code():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
 ##############################
 @get("/app.css")
@@ -81,20 +87,18 @@ def _():
         print("email received: " + email)
         password = x.validate_password()
         print("password received: " + password)
+        verification_code = generate_verification_code()
         selected_option = request.forms.get("option")
         print(selected_option)
-        
         ic(username) # this is ice cream it displays error codes when something goes wrong
         ic(password)
         ic(email) # this is ice cream it displays error codes when something goes wrong
-        
         # Hash the password using bcrypt
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        
-        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8'), "role": selected_option} # Save the hashed password
-        res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file
+        user = {"username": username, "user_email": email, "user_password": hashed_password.decode('utf-8'), "role": selected_option, "verification_code": verification_code, "verified": False} # Save the hashed password
+        res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file 
         item = x.arango(res)
-        
+        send_verification_email(email, verification_code)
         return template("login.html")
     except Exception as ex:
         ic(ex)
@@ -104,6 +108,35 @@ def _():
                 {ex.args[1]}
             </template>
             """            
+    finally:
+        pass
+
+@get("/verify")
+def verify():
+    try:
+        verification_code = request.query.code
+        res = {
+            "query": "FOR user IN users FILTER user.verification_code == @code RETURN user",
+            "bindVars": {"code": verification_code}
+        }
+        query_result = x.arango(res)
+        users = query_result.get("result", [])
+
+        if not users:
+            return "Invalid verification code"
+        
+        user = users[0]
+        user["verified"] = True
+        update_res = {
+            "query": "UPDATE @user WITH {verified: true} IN users RETURN NEW",
+            "bindVars": {"user": user}
+        }
+        x.arango(update_res)
+
+        return "You email has been verified. You can now log in at <a href='/login'>Login</a>."
+    except Exception as ex:
+        print("An error occurred:", ex)
+        return "An error occurred while verifying your email."
     finally:
         pass
     

@@ -42,6 +42,15 @@ def _():
 def _(item_splash_image):
     return static_file(item_splash_image, "images")
 
+sessions = {}
+
+def validate_user_logged():
+    user_session_id = request.get_cookie("user_session_id")
+    if user_session_id in sessions:
+        return True
+    else:
+        return False
+
 ##############################
 @get("/")
 def home():
@@ -56,12 +65,8 @@ def home():
         result = x.arango(query)
         items = result.get("result", [])
         ic(items)
-        is_logged = False
-        try:
-            x.validate_user_logged()
-            is_logged = True
-        except:
-            pass
+        is_logged = validate_user_logged()
+        print(is_logged)
 
         return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged)
     except Exception as ex:

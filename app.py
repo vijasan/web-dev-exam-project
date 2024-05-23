@@ -142,16 +142,23 @@ def _():
 @get("/items/page/<page_number>")
 def _(page_number):
     try:
-        db = x.db()
-        next_page = int(page_number) + 1
-        offset = (int(page_number) - 1) * x.ITEMS_PER_PAGE
-        q = db.execute(f"""     SELECT * FROM items 
-                                ORDER BY item_created_at 
-                                LIMIT ? OFFSET {offset}
-                        """, (x.ITEMS_PER_PAGE,))
-        items = q.fetchall()
+        page_number = int(page_number)
+        if page_number < 1:
+            raise ValueError("Page number must be greater than 0")
+        
+        offset = (page_number - 1) * x.ITEMS_PER_PAGE
+        query = {
+            "query": "FOR item IN items SORT item.item_created_at LIMIT @offset, @limit RETURN item",
+            "bindVars": {
+                "offset": offset,
+                "limit": x.ITEMS_PER_PAGE
+            }
+        }
+        result = x.arango(query)
+        items = result.get("result", [])
         ic(items)
 
+        html = ""
         is_logged = False
         try:
             x.validate_user_logged()
@@ -159,12 +166,14 @@ def _(page_number):
         except:
             pass
 
-        html = ""
-        for item in items: 
+        for item in items:
             html += template("_item", item=item, is_logged=is_logged)
+        
+        next_page = page_number + 1
         btn_more = template("__btn_more", page_number=next_page)
-        if len(items) < x.ITEMS_PER_PAGE: 
+        if len(items) < x.ITEMS_PER_PAGE:
             btn_more = ""
+
         return f"""
         <template mix-target="#items" mix-bottom>
             {html}
@@ -178,7 +187,7 @@ def _(page_number):
         ic(ex)
         return "ups..."
     finally:
-        if "db" in locals(): db.close()
+        pass
 
 
 ##############################

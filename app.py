@@ -444,7 +444,7 @@ def _(id):
 @get("/users")
 def _():
     try:
-        q = {"query": "FOR user IN users RETURN user"}
+        q = {"query": "FOR user IN users FILTER user.blocked != true RETURN user"}
         users = x.arango(q)
         ic(users)
         return template("users", users=users["result"])
@@ -476,15 +476,18 @@ def _(key):
             return "Invalid key format"
 
         ic(key)
-        res = x.arango({"query":"""
-                    FOR user IN users
-                    FILTER user._key == @key
-                    REMOVE user IN users RETURN OLD""", 
-                    "bindVars":{"key":key}})
-        print(res)
+        res = x.arango({
+            "query": """
+                FOR user IN users
+                FILTER user._key == @key
+                UPDATE user WITH { blocked: true } IN users RETURN NEW
+            """, 
+            "bindVars": {"key": key}
+        })
+        ic(res)
         return f"""
         <template mix-target="[id='{key}']" mix-replace>
-            <div class="mix-fade-out user_deleted" mix-ttl="2000">User deleted</div>
+            <div class="mix-fade-out user_deleted" mix-ttl="2000">User blocked</div>
         </template>
         """
     except Exception as ex:

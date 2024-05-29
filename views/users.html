@@ -1,9 +1,15 @@
 %include("_header")
 <main class="max-w-screen-md lg:max-w-6xl my-0 mx-auto pb-10">
     <h1>Users</h1>
-    <div id="users">
-        % for user in users:
+    <div id="active_users">
+        % for user in active_users:
             % include("_user.html")
+        % end
+    </div>
+    <h2>Blocked users</h2>
+    <div id="blocked_users">
+        % for user in blocked_users:
+            % include("_blocked-user.html")
         % end
     </div>
     <p id="message"></p>

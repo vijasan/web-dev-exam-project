@@ -1,0 +1,112 @@
+[
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4951",
+        "item_name": "Christiansborg Palace",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4951.webp",
+        "item_lat": "55.6761",
+        "item_lon": "12.5770",
+        "item_stars": 5,
+        "item_price_per_night": 2541,
+        "item_created_at": 1,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4952",
+        "item_name": "Tivoli Gardens",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4952.webp",
+        "item_lat": "55.6736",
+        "item_lon": "12.5681",
+        "item_stars": 4.97,
+        "item_price_per_night": 985,
+        "item_created_at": 2,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4953",
+        "item_name": "Nyhavn",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4953.webp",
+        "item_lat": "55.6794",
+        "item_lon": "12.5918",
+        "item_stars": 3.45,
+        "item_price_per_night": 429,
+        "item_created_at": 3,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4954",
+        "item_name": "The Little Mermaid statue",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4954.webp",
+        "item_lat": "55.6929",
+        "item_lon": "12.5998",
+        "item_stars": 4,
+        "item_price_per_night": 862,
+        "item_created_at": 4,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4955",
+        "item_name": "Amalienborg Palace",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4955.webp",
+        "item_lat": "55.6846",
+        "item_lon": "12.5949",
+        "item_stars": 2.67,
+        "item_price_per_night": 1200,
+        "item_created_at": 5,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4956",
+        "item_name": "Copenhagen Opera House",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4956.webp",
+        "item_lat": "55.6796",
+        "item_lon": "12.6021",
+        "item_stars": 4.57,
+        "item_price_per_night": 1965,
+        "item_created_at": 6,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4957",
+        "item_name": "Rosenborg Castle",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4957.webp",
+        "item_lat": "55.6867",
+        "item_lon": "12.5734",
+        "item_stars": 4,
+        "item_price_per_night": 1700,
+        "item_created_at": 7,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4958",
+        "item_name": "The National Museum of Denmark",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4958.webp",
+        "item_lat": "55.6772",
+        "item_lon": "12.5784",
+        "item_stars": 5,
+        "item_price_per_night": 2100,
+        "item_created_at": 8,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4959",
+        "item_name": "Church of Our Saviour",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4959.webp",
+        "item_lat": "55.6732",
+        "item_lon": "12.5986",
+        "item_stars": 4.3,
+        "item_price_per_night": 985,
+        "item_created_at": 9,
+        "item_updated_at": 0
+    },
+    {
+        "_key": "5dbce622fa2b4f22a6f6957d07ff4910",
+        "item_name": "Round Tower",
+        "item_splash_image": "5dbce622fa2b4f22a6f6957d07ff4910.webp",
+        "item_lat": "55.6813",
+        "item_lon": "12.5759",
+        "item_stars": 4.8,
+        "item_price_per_night": 1200,
+        "item_created_at": 10,
+        "item_updated_at": 0
+    }
+]

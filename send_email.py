@@ -2,44 +2,42 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-sender_email = "YOUR CREATED GMAIL ACCOUNT"
-receiver_email = "SEND TO THIS EMAIL ACCOUNT"
-password = "THE SECRET CODE YOU COPIED FROM GOOGLE ACCOUNT"
+def send_verification_email(receiver_email, verification_code):
+    sender_email = "skroyer09@gmail.com"
+    password = "vkxq xwhj yaxn rqjs"
 
-message = MIMEMultipart("alternative")
-message["Subject"] = "multipart test"
-message["From"] = sender_email
-message["To"] = receiver_email
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Verify your email address"
+    message["From"] = sender_email
+    message["To"] = receiver_email
 
-# Create the plain-text and HTML version of your message
-text = """\
-Hi,
-How are you?
-www.your_website_here.com"""
-html = """\
-<html>
-  <body>
-    <p>Hi,<br>
-       How are you?<br>
-       <a href="https://www.your_website_here.com">YOUR WEBSITE HERE</a>
-    </p>
-  </body>
-</html>
-"""
 
-# Turn these into plain/html MIMEText objects
-part1 = MIMEText(text, "plain")
-part2 = MIMEText(html, "html")
+    text = f"""\
+    Hi,
+    Please verify your email address by using the following code: {verification_code}
+    """
+    html = f"""\
+    <html>
+      <body>
+        <p>Hi,<br>
+          Please verify your email by clicking the link below:<br>
+          <a href="http://127.0.0.1/verify?code={verification_code}">Verify Email</a>
+        </p>
+      </body>
+    </html>
+    """
 
-# Add HTML/plain-text parts to MIMEMultipart message
-# The email client will try to render the last part first
-message.attach(part1)
-message.attach(part2)
+    # Turn these into plain/html MIMEText objects
+    part1 = MIMEText(text, "plain")
+    part2 = MIMEText(html, "html")
 
-# Create secure connection with server and send email
-context = ssl.create_default_context()
-with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-    server.login(sender_email, password)
-    server.sendmail(
-        sender_email, receiver_email, message.as_string()
-    )
+    # Add HTML/plain-text parts to MIMEMultipart message
+    # The email client will try to render the last part first
+    message.attach(part1)
+    message.attach(part2)
+
+    # Create secure connection with server and send email
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message.as_string())

@@ -1,0 +1,27 @@
+%import x
+%include("_header")
+
+<main class="flex flex-col gap-2 w-full mx-4 md:w-1/2">
+    <h1>Add New Item</h1>
+    <form action="/add_item" method="post" enctype="multipart/form-data">
+        <label for="item_name">Item Name:</label>
+        <input type="text" id="item_name" name="item_name" required>
+    
+        <label for="item_splash_image">Splash Image:</label>
+        <input type="file" id="item_splash_image" name="item_splash_image" accept="image/*" required>
+            
+        <label for="item_price_per_night">Price per Night:</label>
+        <input type="number" id="item_price_per_night" name="item_price_per_night" required>
+            
+        <label for="image2">Image 2:</label>
+        <input type="file" id="image2" name="image2" accept="image/*">
+            
+        <label for="image3">Image 3:</label>
+        <input type="file" id="image3" name="image3" accept="image/*">
+            
+        <button type="submit">Add Item</button>
+    </form>
+    <p id="message"></p>
+</main>
+
+%include("_footer")

@@ -43,11 +43,11 @@
             </a>
 
             % if get("is_logged", False):
-                <a href="/logout" class="{{ get('active_login', '') }}">
+                <a href="/logout">
                     Logout
                 </a>
             % else:
-                <a href="/login" class="{{ get('active_login', '') }}">
+                <a href="/login">
                     Login
                 </a>
             % end

@@ -8,9 +8,10 @@
         mix-check="{{x.EMAIL_REGEX}}" mix-blur mix-put="/users/{{user['_key']}}" mix-data="#user_{{user['_key']}}">
     </form>
     <button
-    mix-delete="/users/{{user['_key']}}"
-    mix-default="Delete"
-    mix-await="Deleting...">
-    Delete
+    mix-put="/users/unblock/{{user['_key']}}"
+    mix-data="#user_{{user['_key']}}"
+    mix-default="Unblock"
+    mix-await="Unblocking...">
+    Unblock
     </button>
 </div>

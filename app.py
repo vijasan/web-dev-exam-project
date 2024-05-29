@@ -41,8 +41,14 @@ def _():
 
 ##############################
 @get("/images/<item_splash_image>")
-def _(item_splash_image):
-    return static_file(item_splash_image, "images")
+def serve_image(item_splash_image):
+    # Check if the requested image exists in the current directory
+    if os.path.exists(os.path.join("images", item_splash_image)):
+        # Serve the requested image from the current directory
+        return static_file(item_splash_image, "images")
+    else:
+        # Serve the image from the uploads directory if it's not found in the current directory
+        return static_file(item_splash_image, root="uploads/images")
 
 sessions = {}
 
@@ -521,7 +527,7 @@ def get_user(key):
 def _(key):
     try:
         # Regex validation for key
-        if not re.match(r"^[1-9]\d*$", key):
+        if not re.match(r'^[1-9]\d*$', key):
             return "Invalid key format"
 
         ic(key)
@@ -534,6 +540,13 @@ def _(key):
             "bindVars": {"key": key}
         })
         ic(res)
+
+        user_query = {"query": "FOR user IN users FILTER user._key == @key RETURN user", "bindVars": {"key": key}}
+        user_result = x.arango(user_query)
+        if user_result["result"]:
+            user_email = user_result["result"][0]["user_email"]
+            x.send_block_email(user_email)
+
         return f"""
         <template mix-target="[id='{key}']" mix-replace>
             <div class="mix-fade-out user_deleted" mix-ttl="2000">User blocked</div>
@@ -550,20 +563,24 @@ def _(key):
 def _(key):
     try:
         username = x.validate_user_username()
-        email = x.validate_email()
-        res = x.arango({"query":"""
-                        UPDATE { _key: @key, username: @username, email: @email} 
-                        IN users 
-                        RETURN NEW""",
-                    "bindVars":{
-                        "key": f"{key}",
-                        "username":f"{username}",
-                        "email":f"{email}"
-                    }})
-        print(res)
+        user_email = x.validate_email()
+        res = x.arango({
+            "query": """
+                FOR user IN users
+                FILTER user._key == @key
+                UPDATE user WITH { username: @username, user_email: @user_email } IN users
+                RETURN NEW
+            """,
+            "bindVars": {
+                "key": key,
+                "username": username,
+                "user_email": user_email
+            }
+        })
+        ic(res)
         return f"""
         <template mix-target="[id='{key}']" mix-before>
-            <div class="mix-fade-out user_deleted" mix-ttl="2000">User updated</div>            
+            <div class="mix-fade-out user_updated" mix-ttl="2000">User updated</div>
         </template>
         """
     except Exception as ex:
@@ -573,7 +590,7 @@ def _(key):
             <template mix-target="#message">
                 {ex.args[1]}
             </template>
-            """ 
+            """
     finally:
         pass
 ##############################

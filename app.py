@@ -710,11 +710,7 @@ def add_item():
         }
         result = x.arango(query)
 
-        return f"""
-            <template mix-target="#message">
-                {ex.args[1]}
-            </template>
-            """         
+        return "Item added successfully"
     except Exception as ex:
         print("An error occurred:", ex)
         return f"An error occurred: {str(ex)}"

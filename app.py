@@ -263,16 +263,22 @@ def login_post():
 
         if users:
             for user in users:
-                stored_hashed_password = user.get("user_password")
+                user_verified_status = user.get("verified")
+                print(user_verified_status)
 
-                # Verify the provided password with the stored hashed password
-                if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
-                    user_session_id = str(uuid.uuid4())
-                    sessions[user_session_id] = user
-                    print("#"*30)
-                    print(sessions)
-                    response.set_cookie("user_session_id", user_session_id)
-                    return home()
+                if user_verified_status == True:
+                    stored_hashed_password = user.get("user_password")
+                    
+                    # Verify the provided password with the stored hashed password
+                    if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+                        user_session_id = str(uuid.uuid4())
+                        sessions[user_session_id] = user
+                        print("#"*30)
+                        print(sessions)
+                        response.set_cookie("user_session_id", user_session_id)
+                        return home()
+                else:
+                    return "Only Verified users can login"
 
         return login()
         # return "login failed - incorrect email or password"

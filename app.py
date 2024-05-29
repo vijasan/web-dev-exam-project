@@ -557,7 +557,7 @@ def handle_forgot_password():
     try:
         email = request.forms.get("email")
         user_query = {
-            "query": "FOR user IN users FILTER user.email == @user_email RETURN user",
+            "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
             "bindVars": {"user_email": email}
         }
         user = x.arango(user_query)
@@ -604,11 +604,11 @@ def handle_reset_password(key):
         if password != confirm_password:
             return "Passwords do not match"
         
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         update_query = {
             "query": """
-                UPDATE { _key: @key, password: @password }
+                UPDATE { _key: @key, user_password: @password }
                 IN users
             """,
             "bindVars": {

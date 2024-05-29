@@ -4,7 +4,7 @@
     <form id="user_{{user['_key']}}">
         <input name="username" value="{{user['username']}}" 
         mix-check="{{x.USER_USERNAME_REGEX}}" mix-blur mix-put="/users/{{user['_key']}}" mix-data="#user_{{user['_key']}}"> 
-        <input name="user_email" value="{{user['email']}}" 
+        <input name="user_email" value="{{user['user_email']}}" 
         mix-check="{{x.EMAIL_REGEX}}" mix-blur mix-put="/users/{{user['_key']}}" mix-data="#user_{{user['_key']}}">
     </form>
     <button

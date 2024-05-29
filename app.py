@@ -439,10 +439,22 @@ def _(id):
 @get("/users")
 def _():
     try:
-        q = {"query": "FOR user IN users FILTER user.blocked != true RETURN user"}
-        users = x.arango(q)
-        ic(users)
-        return template("users", users=users["result"])
+        active_query = {"query": """
+                                    FOR user IN users 
+                                    LET isBlocked = HAS(user, 'blocked') ? user.blocked : false
+                                    FILTER isBlocked != true 
+                                    UPDATE user WITH { blocked: isBlocked } IN users 
+                                    RETURN NEW
+                            """}
+        blocked_query = {"query": "FOR user IN users FILTER user.blocked == true RETURN user"}
+        
+        active_users = x.arango(active_query)
+        blocked_users = x.arango(blocked_query)
+        
+        ic(active_users)
+        ic(blocked_users)
+        
+        return template("users", active_users=active_users["result"], blocked_users=blocked_users["result"])
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

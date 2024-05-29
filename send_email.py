@@ -21,7 +21,7 @@ def send_verification_email(receiver_email, verification_code):
       <body>
         <p>Hi,<br>
           Please verify your email by clicking the link below:<br>
-          <a href="http://0.0.0.0/verify?code={verification_code}">Verify Email</a>
+          <a href="http://127.0.0.1/verify?code={verification_code}">Verify Email</a>
         </p>
       </body>
     </html>

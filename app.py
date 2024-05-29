@@ -21,6 +21,15 @@ import time
 def generate_verification_code():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
+sessions = {}
+
+def validate_user_logged():
+    user_session_id = request.get_cookie("user_session_id")
+    if user_session_id in sessions:
+        return True
+    else:
+        return False
+
 ##############################
 @get("/app.css")
 def _():
@@ -49,15 +58,6 @@ def serve_image(item_splash_image):
     else:
         # Serve the image from the uploads directory if it's not found in the current directory
         return static_file(item_splash_image, root="uploads/images")
-
-sessions = {}
-
-def validate_user_logged():
-    user_session_id = request.get_cookie("user_session_id")
-    if user_session_id in sessions:
-        return True
-    else:
-        return False
 
 ##############################
 @get("/")
@@ -419,14 +419,16 @@ def _(id):
         item = items[0]  # There should be only one item with the specified ID
         title = f"Item {id}"
         ic(item)
+        is_logged = validate_user_logged()
+        print(is_logged)
         return template("rooms",
                         id=id, 
                         title=title,
-                        item=item)
+                        item=item, is_logged=is_logged)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
-
+    
 ##############################
 @get("/users")
 def _():

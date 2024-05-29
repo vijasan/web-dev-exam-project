@@ -1,10 +1,6 @@
-# path to bottle main package to replace with own bottle
-# /home/mysite/.local/lib/python3.10/site-packages/bottle.py
-
-# from bottle import default_app, put, delete, get, post, response, run, static_file, template
-# import pathlib
-# import sys
-# sys.path.insert(0, str(pathlib.Path(__file__).parent.resolve())+"/bottle")
+import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from bottle import default_app, put, delete, get, post, request, response, run, static_file, template
 import x, re
 from icecream import ic
@@ -170,16 +166,6 @@ def _():
         res = {"query":"INSERT @doc IN users RETURN NEW", "bindVars":{"doc":user}} # inserts a user via AQL query language, via the db method in the x.py file
         item = x.arango(res)
         return item
-        # html = template("_user.html", user=res["result"][0]) # not sure, a HTML template that is used for displaying a user?
-        # form_create_user =  template("_form_create_user.html") # template again
-        # return f"""
-        # <template mix-target="#users" mix-top>
-        #     {html}
-        # </template>
-        # <template mix-target="#frm_user" mix-replace>
-        #     {form_create_user}
-        # </template>
-        # """
     except Exception as ex:
         ic(ex)
         if "username" in str(ex):
@@ -297,6 +283,70 @@ def login_post():
 @get("/profile")
 def _():
     return template("user_profile")
+
+@post("/verification_email_delete")
+def send_verification_email_delete():
+    user_email = request.forms.get("user_email")
+    print(user_email)
+    user_password = request.forms.get("user_password")
+    print(user_password)
+    sender_email = "skroyer09@gmail.com"
+    password = "vkxq xwhj yaxn rqjs"
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Verify your email address"
+    message["From"] = sender_email
+    message["To"] = user_email
+
+
+    text = f"""\
+    Hi,
+    Please verify deletion of your account by clicking the link
+    """
+    html = f"""\
+    <html>
+      <body>
+        <p>Hi,<br>
+          Please verify deletion of your account by clicking the link below:<br>
+          <a href="http://127.0.0.1/Verify_delete?code={user_email}">Verify Email</a>
+        </p>
+      </body>
+    </html>
+    """
+
+    # Turn these into plain/html MIMEText objects
+    part1 = MIMEText(text, "plain")
+    part2 = MIMEText(html, "html")
+
+    # Add HTML/plain-text parts to MIMEMultipart message
+    # The email client will try to render the last part first
+    message.attach(part1)
+    message.attach(part2)
+
+    # Create secure connection with server and send email
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, user_email, message.as_string())
+    return home()
+
+@get("/Verify_delete")
+def login_post():
+    try:
+        user_email = request.query.code
+
+        res = {
+            "query": "FOR user IN users FILTER user.user_email == @user_email UPDATE user WITH { is_deleted: true } IN users",
+            "bindVars": {"user_email": user_email}
+        }
+        query_result = x.arango(res)
+        users = query_result.get("result", [])
+
+        return "You account has been deleted. You can go back to the homepage now <a href='/'>Homepage</a>."
+        # return "login failed - incorrect email or password"
+    except Exception as ex:
+        print("An error occurred:", ex)
+        return "An error occurred while processing your request"
 
 # ##############################
 # @get("/profile")

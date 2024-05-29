@@ -966,8 +966,8 @@ def update_item(key):
                 item_lon: @item_lon,
                 item_stars: @item_stars,
                 item_updated_at: @item_updated_at,
-                image2: @image2,
-                image3: @image3
+                item_image2: @image2,
+                item_image3: @image3
             } IN items
             """,
             "bindVars": {
@@ -979,8 +979,8 @@ def update_item(key):
                 "item_lon": round(random.uniform(12.55, 12.6), 4),
                 "item_stars": round(random.uniform(3.0, 5.0), 1),
                 "item_updated_at": int(time.time()),
-                "image2": image2_filename or item.get('image2'),
-                "image3": image3_filename or item.get('image3')
+                "item_image2": image2_filename or item.get('image2'),
+                "item_image3": image3_filename or item.get('image3')
             }
         }
 

@@ -551,7 +551,7 @@ def handle_forgot_password():
     try:
         email = request.forms.get("email")
         user_query = {
-            "query": "FOR user IN users FILTER user.user_ email == @user_email RETURN user",
+            "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
             "bindVars": {"user_email": email}
         }
         user = x.arango(user_query)

@@ -282,7 +282,76 @@ def login_post():
 ##############################
 @get("/profile")
 def _():
-    return template("user_profile")
+    try:
+        user_session_id = request.get_cookie("user_session_id")
+        if user_session_id not in sessions:
+            return "You are not logged in"
+            response.set_header('Location', '/login')
+            return
+        
+        user = sessions[user_session_id]
+        return template("user_profile", user=user)
+    except Exception as ex:
+        ic(ex)
+        return {"error": str(ex)}
+
+##############################
+
+@post("/update_profile")
+def update_profile():
+    try:
+        user_session_id = request.get_cookie("user_session_id")
+        if user_session_id not in sessions:
+            response.status = 303
+            response.set_header('Location', '/login')
+            return
+        
+        user = sessions[user_session_id]
+
+        username = request.forms.get("user_name")    
+        user_email = request.forms.get("user_email")
+        user_password = request.forms.get("user_password")
+
+        if user_password:
+            hashed_password = bcrypt.hashpw(user_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        else:
+            hashed_password = user["user_password"]
+
+        user["username"] = username
+        user["user_email"] = user_email
+        user["user_password"] = hashed_password
+
+        update_query = {
+            "query": """
+                FOR user IN users
+                FILTER user._key == @key
+                UPDATE user WITH { 
+                    username: @username, 
+                    user_email: @user_email, 
+                    user_password: @user_password 
+                } IN users    
+                RETURN NEW
+            """,
+            "bindVars": {
+                "key": user["_key"],
+                "username": username,
+                "user_email": user_email,
+                "user_password": hashed_password
+            }
+        }
+
+        result = x.arango(update_query)
+        updated_user = result.get("result", [])[0]
+        sessions[user_session_id] = updated_user
+
+        return "Profile updated successfully"
+    except Exception as ex:
+        ic(ex)
+        return str(ex)
+    
+##############################
+
+
 
 @post("/verification_email_delete")
 def send_verification_email_delete():

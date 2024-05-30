@@ -114,6 +114,22 @@ def _():
         ic(username) # this is ice cream it displays error codes when something goes wrong
         ic(password)
         ic(email) # this is ice cream it displays error codes when something goes wrong
+        
+        res = {
+            "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
+            "bindVars": {"user_email": email}
+        }
+        query_result = x.arango(res)
+        users = query_result.get("result", [])
+
+        if users:
+            for user in users:
+                user_email = user.get("user_email")
+
+                if user_email == email:
+                    return "user already exists"
+        
+        
         # Hash the password using bcrypt
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         user = {"username": username, 

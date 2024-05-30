@@ -388,10 +388,34 @@ def update_profile():
     except Exception as ex:
         ic(ex)
         return str(ex)
-    
+##############################
 @get("/partner_properties")
-def _():
-    return template("_youreproperty.html")
+def get_partner_properties():
+    try:
+        # Ensure user is logged in and has appropriate role
+        validate_user_logged()
+        validate_user_role()
+
+        # Retrieve active user's ID from cookie
+        active_user = request.get_cookie("user_id")
+        if not active_user:
+            return "User ID not found in cookies"
+
+        # Query to fetch user's items from ArangoDB
+        your_items_query = {
+            "query": "FOR item IN items FILTER item.item_user == @key RETURN item",
+            "bindVars": {"key": active_user}
+        }
+
+        # Execute the query
+        your_items = x.arango(your_items_query)
+
+        # Render HTML template with retrieved items
+        return template("partner_items.html", your_items=your_items['result'])
+
+    except Exception as ex:
+        # Handle any exceptions
+        return str(ex)
 
 ##############################
 @post("/verification_email_delete")
@@ -836,6 +860,8 @@ UPLOAD_DIR = "uploads/images"
 @get("/add_item")
 def add_item_form():
     try:
+        validate_user_logged
+        validate_user_role
         return template("add_item.html")
     except Exception as ex:
         print("There was a problem loading the page:", ex)
@@ -844,6 +870,7 @@ def add_item_form():
 @post("/add_item")
 def add_item():
     try:
+        item_user = request.get_cookie("user_id")
         # Get form data
         item_name = request.forms.get("item_name")
         
@@ -888,7 +915,8 @@ def add_item():
             "item_created_at": int(time.time()),
             "item_updated_at": 0,
             "item_image2": image2_filename,
-            "item_image3": image3_filename
+            "item_image3": image3_filename,
+            "item_user": item_user
 
         }
 
@@ -909,6 +937,8 @@ def add_item():
 @get('/edit_item/<key>')
 def _(key):
     try:
+        validate_user_logged
+        validate_user_role
         item_key_data = key
         item_key_name = "_key"
         query = {
@@ -1025,7 +1055,7 @@ def update_item(key):
             }
         }
 
-        x.arango(update_query)
+        result = x.arango(update_query)
         
         return "Item updated successfully"
     except Exception as ex:

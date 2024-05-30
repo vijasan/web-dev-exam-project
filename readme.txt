@@ -1,1 +1,7 @@
-Remeber to add the user collection in arangoDB otherwise signup won't work
+admin login:
+
+role: admin
+
+tobi1812@stud.kea.dk
+
+Password@123456

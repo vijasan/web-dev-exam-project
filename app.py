@@ -69,7 +69,7 @@ def home():
         x.setup_collection()
         # Fetch items from the ArangoDB collection 'items'
         query = {
-            "query": "FOR item IN items SORT item.item_created_at LIMIT @limit RETURN item",
+            "query": "FOR item IN items LET isBlocked = HAS(item, 'blocked') ? item.blocked : false UPDATE item WITH { blocked: isBlocked } IN items SORT item.item_created_at LIMIT @limit RETURN item",
             "bindVars": {"limit": x.ITEMS_PER_PAGE}
         }
         result = x.arango(query)
@@ -895,13 +895,12 @@ def add_item():
             "query": "INSERT @item INTO items RETURN NEW",
             "bindVars": {"item": item}
         }
-        result = x.arango(query)
+        x.arango(query)
 
         return "Item added successfully"
     except Exception as ex:
         print("An error occurred:", ex)
         return f"An error occurred: {str(ex)}"
-
     finally:
         pass
 ##############################
@@ -1029,6 +1028,31 @@ def update_item(key):
         return "Item updated successfully"
     except Exception as ex:
         return {"error": str(ex)}
+    finally:
+        pass
+##############################
+@post("/block_item/<key>")
+def _(key):
+    try:
+
+        ic(key)
+        res = x.arango({
+            "query": """
+                FOR item IN items
+                FILTER item._key == @key
+                UPDATE item WITH { blocked: item.blocked == true ? false : true } IN items
+            """, 
+            "bindVars": {"key": key}
+        })
+        ic(res)
+
+        response.status = 303 
+        response.set_header('Location', '/')
+    except Exception as ex:
+        ic(ex)
+        return "An error occurred"
+    finally:
+        pass
 
 ##############################
 try:

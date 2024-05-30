@@ -279,7 +279,8 @@ def login():
     try:
         x.no_cache()
         is_role = validate_user_role()
-        return template("login_wu_mixhtml.html", is_role=is_role, error_message=None)
+        is_admin_role = validate_admin()
+        return template("login_wu_mixhtml.html", is_role=is_role, error_message=None, is_admin_role=is_admin_role)
     except Exception as ex:
         print(ex)
         return str(ex)

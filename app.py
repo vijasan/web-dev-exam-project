@@ -1128,6 +1128,7 @@ def update_item(key):
         
         response.status = 303
         response.set_header('Location', '/partner_properties')
+        return
     except Exception as ex:
         return {"error": str(ex)}
 
@@ -1171,6 +1172,7 @@ def _(key):
         
         response.status = 303
         response.set_header('Location', '/')
+        return
     except Exception as ex:
         ic(ex)
         return "An error occurred"

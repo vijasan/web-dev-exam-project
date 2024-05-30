@@ -292,6 +292,7 @@ def login_post():
                 if user_verified_status == True:
                     stored_hashed_password = user.get("user_password")
                     user_role = user.get("role")
+                    user_id = user.get("_key")
                     
                     # Verify the provided password with the stored hashed password
                     if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
@@ -301,6 +302,7 @@ def login_post():
                         print(sessions)
                         response.set_cookie("user_session_id", user_session_id)
                         response.set_cookie("role", user_role)
+                        response.set_cookie("user_id", user_id)
                         response.status = 303
                         response.set_header('Location', '/')
                         return

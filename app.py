@@ -30,8 +30,11 @@ def validate_user_role():
     user_role = request.get_cookie("role")
     if user_role == "partner":
         return True
-    else:
+    elif user_role == "customer":
         return False
+    
+    return False
+        
 
 ##############################
 @get("/app.css")
@@ -43,7 +46,6 @@ def _():
 @get("/<file_name>.js")
 def _(file_name):
     return static_file(file_name+".js", ".")
-
 
 ##############################
 @get("/test")
@@ -98,6 +100,8 @@ def _():
         print("there was a problem loading the page")
         print(ex)
         return ex
+    finally:
+        pass
 
 @post("/signup")
 def _():
@@ -263,9 +267,15 @@ def _(page_number):
 ##############################
 @get("/login")
 def login():
-    x.no_cache()
-    is_role = validate_user_role()
-    return template("login_wu_mixhtml.html", is_role=is_role)
+    try:
+        x.no_cache()
+        is_role = validate_user_role()
+        return template("login_wu_mixhtml.html", is_role=is_role)
+    except Exception as ex:
+        print(ex)
+        return ex
+    finally:
+        pass
 
 sessions = {}
 
@@ -315,6 +325,8 @@ def login_post():
     except Exception as ex:
         print("An error occurred:", ex)
         return "An error occurred while processing your request"
+    finally:
+        pass
 
 
 ##############################
@@ -329,10 +341,13 @@ def _():
         
         user = sessions[user_session_id]
         is_role = validate_user_role()
-        return template("user_profile", user=user, is_role=is_role)
+        is_logged = validate_user_logged()
+        return template("user_profile", user=user, is_role=is_role, is_logged=is_logged)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
+    finally:
+        pass
 
 ##############################
 
@@ -388,57 +403,69 @@ def update_profile():
     except Exception as ex:
         ic(ex)
         return str(ex)
+    finally:
+        pass
     
 @get("/partner_properties")
 def _():
-    return template("_youreproperty.html")
+    is_logged = validate_user_logged()
+    return template("_youreproperty.html", is_logged=is_logged)
 
 ##############################
 @post("/verification_email_delete")
 def send_verification_email_delete():
-    user_email = request.forms.get("user_email")
-    print(user_email)
-    user_password = request.forms.get("user_password")
-    print(user_password)
-    sender_email = "skroyer09@gmail.com"
-    password = "vkxq xwhj yaxn rqjs"
+    try:
+        user_email = request.forms.get("user_email")
+        print(user_email)
+        user_password = request.forms.get("user_password")
+        print(user_password)
+        sender_email = "skroyer09@gmail.com"
+        password = "vkxq xwhj yaxn rqjs"
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "Verify your email address"
-    message["From"] = sender_email
-    message["To"] = user_email
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Verify deletion of you account"
+        message["From"] = sender_email
+        message["To"] = user_email
 
 
-    text = f"""\
-    Hi,
-    Please verify deletion of your account by clicking the link
-    """
-    html = f"""\
-    <html>
-      <body>
-        <p>Hi,<br>
-          Please verify deletion of your account by clicking the link below:<br>
-          <a href="http://127.0.0.1/Verify_delete?code={user_email}">Verify Email</a>
-        </p>
-      </body>
-    </html>
-    """
+        text = f"""\
+        Hi,
+        Please verify deletion of your account by clicking the link
+        """
+        html = f"""\
+        <html>
+        <body>
+            <p>Hi,<br>
+            Please verify deletion of your account by clicking the link below:<br>
+            <a href="http://127.0.0.1/Verify_delete?code={user_email}">Delete account</a>
+            </p>
+        </body>
+        </html>
+        """
 
-    # Turn these into plain/html MIMEText objects
-    part1 = MIMEText(text, "plain")
-    part2 = MIMEText(html, "html")
+        # Turn these into plain/html MIMEText objects
+        part1 = MIMEText(text, "plain")
+        part2 = MIMEText(html, "html")
 
-    # Add HTML/plain-text parts to MIMEMultipart message
-    # The email client will try to render the last part first
-    message.attach(part1)
-    message.attach(part2)
+        # Add HTML/plain-text parts to MIMEMultipart message
+        # The email client will try to render the last part first
+        message.attach(part1)
+        message.attach(part2)
 
-    # Create secure connection with server and send email
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, user_email, message.as_string())
-    return home()
+        # Create secure connection with server and send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, user_email, message.as_string())
+        response.status = 303
+        response.set_header('Location', '/')
+        return
+    except Exception as ex:
+        print(ex)
+        return ex
+    finally:
+        pass
+    
 
 @get("/Verify_delete")
 def login_post():
@@ -485,6 +512,7 @@ def _():
     if user_session_id in sessions:
         del sessions[user_session_id]
     response.delete_cookie("user_session_id")
+    response.delete_cookie("role")
     return home()
 
 
@@ -606,6 +634,8 @@ def _(id):
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
+    finally:
+        pass
     
 ##############################
 @get("/users")

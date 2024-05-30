@@ -1181,7 +1181,11 @@ def toggle_booking():
         # Fetch updated item
         updated_item = x.arango(query).get("result", [])[0]
 
-        return template("rooms", id=item_id, title=f"Item {item_id}", item=updated_item)
+        is_role = validate_user_role()
+        is_logged = validate_user_logged()
+        is_admin_role = validate_admin()
+
+        return template("rooms", id=item_id, title=f"Item {item_id}", item=updated_item, is_role=is_role, is_admin_role=is_admin_role, is_logged=is_logged)
     except Exception as ex:
         print("An error occurred:", ex)
         return str(ex)

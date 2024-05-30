@@ -313,6 +313,7 @@ def login_post():
                         response.set_cookie("user_session_id", user_session_id)
                         response.set_cookie("role", user_role)
                         response.set_cookie("user_id", user_id)
+                        response.set_cookie("user_email", user_email)
                         response.status = 303
                         response.set_header('Location', '/')
                         return
@@ -924,6 +925,7 @@ def add_item_form():
 def add_item():
     try:
         item_user = request.get_cookie("user_id")
+        item_email = request.get_cookie("user_email")
         # Get form data
         item_name = request.forms.get("item_name")
         
@@ -969,7 +971,8 @@ def add_item():
             "item_updated_at": 0,
             "item_image2": image2_filename,
             "item_image3": image3_filename,
-            "item_user": item_user
+            "item_user": item_user,
+            "item_email": item_email
 
         }
 
@@ -1119,25 +1122,47 @@ def update_item(key):
 @post("/block_item/<key>")
 def _(key):
     try:
-
         ic(key)
+        # Toggle the 'blocked' property of the item
         res = x.arango({
             "query": """
                 FOR item IN items
                 FILTER item._key == @key
                 UPDATE item WITH { blocked: item.blocked == true ? false : true } IN items
+                RETURN NEW
             """, 
             "bindVars": {"key": key}
         })
+
         ic(res)
 
-        response.status = 303 
+        # Extract the updated item from the result
+        if res["result"]:
+            updated_item = res["result"][0]
+            blocked = updated_item["blocked"]
+            
+            # Fetch the item's email
+            email_query = {"query": "FOR item IN items FILTER item._key == @key RETURN item.item_email", "bindVars": {"key": key}}
+            email_result = x.arango(email_query)
+            ic(email_result)
+
+            if email_result["result"]:
+                item_email = email_result["result"][0]
+                
+                # Send email based on the item's blocked status
+                if blocked:
+                    x.send_block_property_email(item_email)
+                else:
+                    x.send_unblock_property_email(item_email)
+        
+        response.status = 303
         response.set_header('Location', '/')
     except Exception as ex:
         ic(ex)
         return "An error occurred"
     finally:
         pass
+
 
 ##############################
 # BOOKING
@@ -1179,15 +1204,6 @@ def toggle_booking():
     except Exception as ex:
         print("An error occurred:", ex)
         return str(ex)
-    
-
-
-
-
-
-
-
-
 
 #############################
 try:

@@ -280,6 +280,37 @@ def send_unblock_email(email):
     server.starttls()
     server.login(from_email, from_password)
     server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+##############################
+def send_block_property_email(email):
+    from_email = 'joeybidenisbased@gmail.com'
+    from_password = 'tdvi euik qgsa bzdf'
+
+    msg = MIMEText(f"your property has been blocked")
+    msg["Subject"] = "Proerty blocked"
+    msg["From"] = from_email
+    msg["To"] = email
+
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.ehlo('Gmail')
+    server.starttls()
+    server.login(from_email, from_password)
+    server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+
+##############################
+def send_unblock_property_email(email):
+    from_email = 'joeybidenisbased@gmail.com'
+    from_password = 'tdvi euik qgsa bzdf'
+
+    msg = MIMEText(f"your property is no longer blocked")
+    msg["Subject"] = "Property un-blocked"
+    msg["From"] = from_email
+    msg["To"] = email
+
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.ehlo('Gmail')
+    server.starttls()
+    server.login(from_email, from_password)
+    server.sendmail(msg["From"], [msg["To"]], msg.as_string())
 
 ##############################
 def generate_random_string(length=32):

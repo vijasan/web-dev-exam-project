@@ -670,6 +670,10 @@ def _(key):
 @get("/rooms/<id>")
 def _(id):
     try:
+        validate_user_logged
+        if validate_user_logged() == False:
+            return "please login first"
+                
         item_key_data = id
         item_key_name = "_key"
         query = {

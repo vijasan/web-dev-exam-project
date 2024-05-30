@@ -979,8 +979,9 @@ def add_item():
             "bindVars": {"item": item}
         }
         x.arango(query)
-
-        return "Item added successfully"
+        response.status = 303
+        response.set_header('Location', '/partner_properties')
+        return
     except Exception as ex:
         print("An error occurred:", ex)
         return f"An error occurred: {str(ex)}"

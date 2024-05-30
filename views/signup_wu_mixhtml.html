@@ -10,8 +10,8 @@
                 <input type="text" name="user_username" pattern="[a-zA-Z\s'\-]+" required title="Name should only contain letters, apostrophes, dashes, and spaces.">
             </div>
             <div>
-                <label>Email:</label>
-                <input type="text" name="user_email" required >
+                <label for="email">Email:</label>
+                <input type="email" name="user_email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required title="Please enter a valid email address.">
             </div>
             <div>
                 <label>Password:</label>

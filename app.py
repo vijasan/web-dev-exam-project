@@ -410,7 +410,7 @@ def update_profile():
 def get_partner_properties():
     try:
         # Ensure user is logged in and has appropriate role
-        validate_user_logged()
+        is_logged = validate_user_logged()
         validate_user_role()
 
         # Retrieve active user's ID from cookie
@@ -428,7 +428,7 @@ def get_partner_properties():
         your_items = x.arango(your_items_query)
 
         # Render HTML template with retrieved items
-        return template("partner_items.html", your_items=your_items['result'])
+        return template("partner_items.html", your_items=your_items['result'], is_logged=is_logged)
 
     except Exception as ex:
         # Handle any exceptions

@@ -777,41 +777,6 @@ def _(key):
         pass
 
 ##############################
-@put("/users/<key>")
-def _(key):
-    try:
-        username = x.validate_user_username()
-        user_email = x.validate_email()
-        res = x.arango({
-            "query": """
-                FOR user IN users
-                FILTER user._key == @key
-                UPDATE user WITH { username: @username, user_email: @user_email } IN users
-                RETURN NEW
-            """,
-            "bindVars": {
-                "key": key,
-                "username": username,
-                "user_email": user_email
-            }
-        })
-        ic(res)
-        return f"""
-        <template mix-target="[id='{key}']" mix-before>
-            <div class="mix-fade-out user_updated" mix-ttl="2000">User updated</div>
-        </template>
-        """
-    except Exception as ex:
-        ic(ex)
-        if "username" in str(ex):
-            return f"""
-            <template mix-target="#message">
-                {ex.args[1]}
-            </template>
-            """
-    finally:
-        pass
-##############################
 
 @get("/forgot-password")
 def forgot_password():
@@ -1173,6 +1138,7 @@ def _(key):
         
         response.status = 303
         response.set_header('Location', '/')
+        return
     except Exception as ex:
         ic(ex)
         return "An error occurred"

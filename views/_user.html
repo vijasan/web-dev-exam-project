@@ -3,9 +3,9 @@
 <div id="{{user['_key']}}" class="user grid grid-cols-3">
     <form id="user_{{user['_key']}}">
         <input name="username" value="{{user['username']}}" 
-        mix-check="{{x.USER_USERNAME_REGEX}}" mix-blur mix-put="/users/{{user['_key']}}" mix-data="#user_{{user['_key']}}"> 
+        mix-check="{{x.USER_USERNAME_REGEX}}" disabled> 
         <input name="user_email" value="{{user['user_email']}}" 
-        mix-check="{{x.EMAIL_REGEX}}" mix-blur mix-put="/users/{{user['_key']}}" mix-data="#user_{{user['_key']}}">
+        mix-check="{{x.EMAIL_REGEX}}" disabled>
     </form>
     <button
     mix-delete="/users/{{user['_key']}}"

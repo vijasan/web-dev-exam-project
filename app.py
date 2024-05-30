@@ -91,8 +91,6 @@ def home():
         print("is user a partner?: ")
         print(is_role)
         is_admin_role = validate_admin()
-        print("is user a partner?: ")
-        print(is_role)
 
         return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
@@ -688,10 +686,13 @@ def _(id):
         is_logged = validate_user_logged()
         print(is_logged)
         is_role = validate_user_role()
+
+        is_admin_role = validate_admin()
+
         return template("rooms",
                         id=id, 
                         title=title,
-                        item=item, is_logged=is_logged, is_role=is_role)
+                        item=item, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

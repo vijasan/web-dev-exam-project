@@ -1,0 +1,29 @@
+%include("_header")
+
+<!DOCTYPE html>
+
+<main class="flex flex-col gap-2 w-full mx-4 md:w-1/2">
+    <h1>Edit Property: {{item['item_name']}}</h1>
+    <form id="frm_edit_item" method="post" enctype="multipart/form-data">
+        <label for="item_name">Name:</label>
+        <input type="text" id="item_name" name="item_name" value="{{item['item_name']}}" required><br>
+
+        <label for="item_price_per_night">Price per Night:</label>
+        <input type="number" id="item_price_per_night" name="item_price_per_night" value="{{item['item_price_per_night']}}" required><br>
+
+        <label for="item_splash_image">Splash Image:</label>
+        <input type="file" id="item_splash_image" name="item_splash_image"><br>
+
+        <label for="image2">Image 2:</label>
+        <input type="file" id="image2" name="image2"><br>
+
+        <label for="image3">Image 3:</label>
+        <input type="file" id="image3" name="image3"><br>
+
+        <button type="submit" mix-post="/edit_item/{{item['_key']}}" mix-data="#frm_edit_item" mix-default="Edit Property" mix-await="Please wait...">Confirm Edit</button>
+    </form>
+
+</main>
+
+
+%include("_footer")

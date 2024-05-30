@@ -103,7 +103,8 @@ def home():
 def _():
     try:
         is_role = validate_user_role()
-        return template("signup_wu_mixhtml.html", is_role=is_role)
+        is_admin_role = validate_admin()
+        return template("signup_wu_mixhtml.html", is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         print("there was a problem loading the page")
         print(ex)

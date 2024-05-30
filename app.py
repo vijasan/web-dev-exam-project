@@ -452,7 +452,9 @@ def delete_item(item_id):
         if result["error"]:
             return "Error deleting item"
         else:
-            return "Item deleted successfully"
+            response.status = 303 
+            response.set_header('Location', '/partner_properties')
+            return
 
     except Exception as ex:
         # Handle any exceptions
@@ -1134,6 +1136,7 @@ def _(key):
 
         response.status = 303 
         response.set_header('Location', '/')
+        return
     except Exception as ex:
         ic(ex)
         return "An error occurred"

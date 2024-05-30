@@ -1125,11 +1125,11 @@ def update_item(key):
                 "item_updated_at": int(time.time())
             }
         }
-
-        x.arango(update_query)
+        stuff = x.arango(update_query)
         
         response.status = 303
         response.set_header('Location', '/partner_properties')
+        return
     except Exception as ex:
         return {"error": str(ex)}
 

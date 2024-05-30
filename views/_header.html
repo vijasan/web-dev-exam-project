@@ -47,6 +47,15 @@
                 </a>
             % end
 
+            % if get("is_admin_role", True):
+                <a href="/users" class="{{ get('active_login', '') }}">
+                    Userlist
+                </a>
+            % else:
+                <a href="">
+                </a>
+            % end
+
             % if get("is_logged", False):
                 <a href="/logout">
                     Logout

@@ -26,7 +26,12 @@
         <form action="/block_item/{{item['_key']}}" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="key" value="{{ item['_key'] }}">
             <input type="hidden" name="blocked" value="{{ 'true' if item['blocked'] else 'false' }}">
+            % if get("is_admin_role", True):
             <button type="submit">{{ 'unblock' if item['blocked'] else 'block' }}</button>
+            % else:
+            <a href="">
+            </a>
+            % end
         </form>
     </div>
 </div>

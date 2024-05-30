@@ -279,12 +279,10 @@ def login():
     try:
         x.no_cache()
         is_role = validate_user_role()
-        return template("login_wu_mixhtml.html", is_role=is_role)
+        return template("login_wu_mixhtml.html", is_role=is_role, error_message=None)
     except Exception as ex:
         print(ex)
-        return ex
-    finally:
-        pass
+        return str(ex)
 
 sessions = {}
 
@@ -292,9 +290,7 @@ sessions = {}
 def login_post():
     try:
         user_email = request.forms.get("user_email")
-        print(user_email)
         user_password = request.forms.get("user_password")
-        print(user_password)
 
         res = {
             "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
@@ -305,38 +301,30 @@ def login_post():
 
         if users:
             for user in users:
-                user_verified_status = user.get("verified")
-                print(user_verified_status)
-
-                if user_verified_status == True:
+                if user.get("verified"):
                     stored_hashed_password = user.get("user_password")
-                    user_role = user.get("role")
-                    user_id = user.get("_key")
-                    
-                    # Verify the provided password with the stored hashed password
                     if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
                         user_session_id = str(uuid.uuid4())
                         sessions[user_session_id] = user
-                        print("#"*30)
-                        print(sessions)
                         response.set_cookie("user_session_id", user_session_id)
-                        response.set_cookie("role", user_role)
-                        response.set_cookie("user_id", user_id)
+                        response.set_cookie("role", user.get("role"))
+                        response.set_cookie("user_id", user.get("_key"))
                         response.set_cookie("user_email", user_email)
                         response.status = 303
                         response.set_header('Location', '/')
                         return
+                    else:
+                        error_message = "Your password is wrong"
+                        return template("login_wu_mixhtml.html", error_message=error_message)
                 else:
-                    return "Only Verified users can login"
-        response.status = 303
-        response.set_header('Location', '/login')
-        return
-        # return "login failed - incorrect email or password"
+                    error_message = "Only verified users can login"
+                    return template("login_wu_mixhtml.html", error_message=error_message)
+        else:
+            error_message = "Incorrect email or password"
+            return template("login_wu_mixhtml.html", error_message=error_message)
     except Exception as ex:
         print("An error occurred:", ex)
         return "An error occurred while processing your request"
-    finally:
-        pass
 
 
 ##############################

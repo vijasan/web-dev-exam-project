@@ -34,6 +34,13 @@ def validate_user_role():
         return False
     
     return False
+
+def validate_admin():
+    user_role = request.get_cookie("role")
+    if user_role == "admin":
+        return True
+    else:
+        return False
         
 
 ##############################
@@ -83,8 +90,11 @@ def home():
         is_role = validate_user_role()
         print("is user a partner?: ")
         print(is_role)
+        is_admin_role = validate_admin()
+        print("is user a partner?: ")
+        print(is_role)
 
-        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged, is_role=is_role)
+        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return str(ex)
@@ -239,9 +249,10 @@ def _(page_number):
             is_logged = True
         except:
             pass
-
+        
+        is_admin_role = validate_admin()
         for item in items:
-            html += template("_item", item=item, is_logged=is_logged)
+            html += template("_item", item=item, is_logged=is_logged, is_admin_role=is_admin_role)
         
         next_page = page_number + 1
         btn_more = template("__btn_more", page_number=next_page)

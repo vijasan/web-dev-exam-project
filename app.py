@@ -572,7 +572,9 @@ def _():
         del sessions[user_session_id]
     response.delete_cookie("user_session_id")
     response.delete_cookie("role")
-    return home()
+    response.status = 303
+    response.set_header('Location', '/')
+    return
 
 
 ##############################

@@ -416,6 +416,30 @@ def get_partner_properties():
     except Exception as ex:
         # Handle any exceptions
         return str(ex)
+    
+##############################
+@post("/delete_item/<item_id>")
+def delete_item(item_id):
+    try:
+        # Ensure user is logged in and has appropriate role
+        validate_user_logged()
+        validate_user_role()
+
+        # Delete the item from ArangoDB
+        delete_query = {
+            "query": "REMOVE { _key: @key } IN items",
+            "bindVars": {"key": item_id}
+        }
+        result = x.arango(delete_query)
+
+        if result["error"]:
+            return "Error deleting item"
+        else:
+            return "Item deleted successfully"
+
+    except Exception as ex:
+        # Handle any exceptions
+        return str(ex)
 
 ##############################
 @post("/verification_email_delete")

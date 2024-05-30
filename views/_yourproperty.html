@@ -23,10 +23,10 @@
         <span>
             nat
         </span>
-        <form action="/block_item/{{item['_key']}}" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="key" value="{{ item['_key'] }}">
-            <input type="hidden" name="blocked" value="{{ 'true' if item['blocked'] else 'false' }}">
-            <button type="submit">{{ 'unblock' if item['blocked'] else 'block' }}</button>
+        <a href="/edit_item/{{item['_key']}}">Edit Property</a>
+        <form action="/delete_item/{{item['_key']}}" method="post">
+            <input type="hidden" name="item_id" value="{{ item['_key'] }}">
+            <button type="submit">Delete</button>
         </form>
     </div>
 </div>

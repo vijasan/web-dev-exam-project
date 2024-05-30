@@ -38,9 +38,14 @@
                 Profile
             </a>
 
-            <a href="/signup" class="{{ get('active_login', '') }}">
-                Your property
-            </a>
+            % if get("is_role", True):
+                <a href="/signup" class="{{ get('active_login', '') }}">
+                    Your property
+                </a>
+            % else:
+                <a href="">
+                </a>
+            % end
 
             % if get("is_logged", False):
                 <a href="/logout">

@@ -114,7 +114,9 @@ def _():
         res = {"query": "INSERT @doc IN users RETURN NEW", "bindVars": {"doc": user}} # inserts a user via AQL query language, via the db method in the x.py file 
         item = x.arango(res)
         send_verification_email(email, verification_code)
-        return template("login.html")
+        response.status = 303
+        response.set_header('Location', '/login')
+        return
     except Exception as ex:
         ic(ex)
         if "user_name" in str(ex):
@@ -268,11 +270,14 @@ def login_post():
                         print("#"*30)
                         print(sessions)
                         response.set_cookie("user_session_id", user_session_id)
-                        return home()
+                        response.status = 303
+                        response.set_header('Location', '/')
+                        return
                 else:
                     return "Only Verified users can login"
-
-        return login()
+        response.status = 303
+        response.set_header('Location', '/login')
+        return
         # return "login failed - incorrect email or password"
     except Exception as ex:
         print("An error occurred:", ex)

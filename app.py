@@ -25,6 +25,13 @@ def validate_user_logged():
         return True
     else:
         return False
+    
+def validate_user_role():
+    user_role = request.get_cookie("role")
+    if user_role == "partner":
+        return True
+    else:
+        return False
 
 ##############################
 @get("/app.css")
@@ -42,7 +49,6 @@ def _(file_name):
 @get("/test")
 def _():
     return [{"name":"one"}]
-
 
 ##############################
 @get("/images/<item_splash_image>")
@@ -70,18 +76,24 @@ def home():
         items = result.get("result", [])
         ic(items)
         is_logged = validate_user_logged()
+        print("user is logged in?: ")
         print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
 
-        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged)
+        return template("index.html", items=items, mapbox_token=credentials.mapbox_token, is_logged=is_logged, is_role=is_role)
     except Exception as ex:
         ic(ex)
         return str(ex)
     finally:
         pass
+
 @get("/signup")
 def _():
     try:
-        return template("signup_wu_mixhtml.html")
+        is_role = validate_user_role()
+        return template("signup_wu_mixhtml.html", is_role=is_role)
     except Exception as ex:
         print("there was a problem loading the page")
         print(ex)
@@ -236,7 +248,8 @@ def _(page_number):
 @get("/login")
 def login():
     x.no_cache()
-    return template("login_wu_mixhtml.html")
+    is_role = validate_user_role()
+    return template("login_wu_mixhtml.html", is_role=is_role)
 
 sessions = {}
 
@@ -262,6 +275,7 @@ def login_post():
 
                 if user_verified_status == True:
                     stored_hashed_password = user.get("user_password")
+                    user_role = user.get("role")
                     
                     # Verify the provided password with the stored hashed password
                     if bcrypt.checkpw(user_password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
@@ -270,6 +284,7 @@ def login_post():
                         print("#"*30)
                         print(sessions)
                         response.set_cookie("user_session_id", user_session_id)
+                        response.set_cookie("role", user_role)
                         response.status = 303
                         response.set_header('Location', '/')
                         return
@@ -295,7 +310,8 @@ def _():
             return
         
         user = sessions[user_session_id]
-        return template("user_profile", user=user)
+        is_role = validate_user_role()
+        return template("user_profile", user=user, is_role=is_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
@@ -355,8 +371,6 @@ def update_profile():
         return str(ex)
     
 ##############################
-
-
 
 @post("/verification_email_delete")
 def send_verification_email_delete():
@@ -562,10 +576,11 @@ def _(id):
         ic(item)
         is_logged = validate_user_logged()
         print(is_logged)
+        is_role = validate_user_role()
         return template("rooms",
                         id=id, 
                         title=title,
-                        item=item, is_logged=is_logged)
+                        item=item, is_logged=is_logged, is_role=is_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

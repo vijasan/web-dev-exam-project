@@ -1057,6 +1057,56 @@ def _(key):
         pass
 
 ##############################
+# BOOKING
+#If you're getting "/toggle_booking not found", try restarting the server 
+@post("/toggle_booking")
+def toggle_booking():
+    try:
+        item_id = request.forms.get("item_id")
+        
+        # Fetch the current booking status
+        query = {
+            "query": "FOR item IN items FILTER item._key == @item_id RETURN item",
+            "bindVars": {"item_id": item_id}
+        }
+        result = x.arango(query)
+        items = result.get("result", [])
+
+        if not items:
+            return "Item not found"
+
+        item = items[0]
+        current_booking_status = item.get("is_booked", False)
+        
+        # Toggle the booking status
+        new_booking_status = not current_booking_status
+        update_query = {
+            "query": """
+                UPDATE { _key: @item_id } WITH { is_booked: @new_booking_status } IN items
+                RETURN NEW
+            """,
+            "bindVars": {"item_id": item_id, "new_booking_status": new_booking_status}
+        }
+        x.arango(update_query)
+
+        # Fetch updated item
+        updated_item = x.arango(query).get("result", [])[0]
+
+        return template("rooms", id=item_id, title=f"Item {item_id}", item=updated_item)
+    except Exception as ex:
+        print("An error occurred:", ex)
+        return str(ex)
+    
+
+
+
+
+
+
+
+
+
+#############################
 try:
     import production
     application = default_app()

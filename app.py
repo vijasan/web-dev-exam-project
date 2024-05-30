@@ -364,8 +364,9 @@ def update_profile():
         result = x.arango(update_query)
         updated_user = result.get("result", [])[0]
         sessions[user_session_id] = updated_user
-
-        return "Profile updated successfully"
+        response.status = 303
+        response.set_header('Location', '/profile')
+        return
     except Exception as ex:
         ic(ex)
         return str(ex)

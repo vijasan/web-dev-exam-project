@@ -1036,7 +1036,7 @@ def _(key):
 
 ##############################
 @post('/edit_item/<key>')
-def update_item(key):    
+def update_item(key):
     try:
         item_name = request.forms.get('item_name')
         item_price_per_night = request.forms.get('item_price_per_night')
@@ -1045,28 +1045,7 @@ def update_item(key):
         image2 = request.files.get('image2')
         image3 = request.files.get('image3')
 
-        # Process splash image
-        if item_splash_image and item_splash_image.filename:
-            splash_image_filename = f"{x.generate_random_string()}_{item_splash_image.filename}"
-            splash_image_path = os.path.join(UPLOAD_DIR, splash_image_filename)
-            item_splash_image.save(splash_image_path)
-        else:
-            splash_image_filename = None
-
-        # Process additional images
-        image2_filename = None
-        if image2 and image2.filename:
-            image2_filename = f"{x.generate_random_string()}_{image2.filename}"
-            image2_path = os.path.join(UPLOAD_DIR, image2_filename)
-            image2.save(image2_path)
-
-        image3_filename = None
-        if image3 and image3.filename:
-            image3_filename = f"{x.generate_random_string()}_{image3.filename}"
-            image3_path = os.path.join(UPLOAD_DIR, image3_filename)
-            image3.save(image3_path)
-
-        # Fetch the existing item to delete old images if necessary
+        # Fetch the existing item to get current image names
         query = {
             "query": "FOR item IN items FILTER item._key == @key RETURN item",
             "bindVars": {"key": key}
@@ -1079,21 +1058,40 @@ def update_item(key):
         
         item = items[0]  # There should be only one item with the specified ID
 
-        # Delete old images if new ones are uploaded
-        if splash_image_filename and item.get('item_splash_image'):
-            old_image_path = os.path.join(UPLOAD_DIR, item['item_splash_image'])
-            if os.path.exists(old_image_path):
-                os.remove(old_image_path)
-        
-        if image2_filename and item.get('image2'):
-            old_image_path = os.path.join(UPLOAD_DIR, item['image2'])
-            if os.path.exists(old_image_path):
-                os.remove(old_image_path)
-        
-        if image3_filename and item.get('image3'):
-            old_image_path = os.path.join(UPLOAD_DIR, item['image3'])
-            if os.path.exists(old_image_path):
-                os.remove(old_image_path)
+        # Process splash image
+        splash_image_filename = item.get('item_splash_image')
+        if item_splash_image and item_splash_image.filename:
+            splash_image_filename = f"{x.generate_random_string()}_{item_splash_image.filename}"
+            splash_image_path = os.path.join(UPLOAD_DIR, splash_image_filename)
+            item_splash_image.save(splash_image_path)
+            # Delete old image
+            if item.get('item_splash_image'):
+                old_image_path = os.path.join(UPLOAD_DIR, item['item_splash_image'])
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
+
+        # Process additional images
+        image2_filename = item.get('image2')
+        if image2 and image2.filename:
+            image2_filename = f"{x.generate_random_string()}_{image2.filename}"
+            image2_path = os.path.join(UPLOAD_DIR, image2_filename)
+            image2.save(image2_path)
+            # Delete old image
+            if item.get('image2'):
+                old_image_path = os.path.join(UPLOAD_DIR, item['image2'])
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
+
+        image3_filename = item.get('image3')
+        if image3 and image3.filename:
+            image3_filename = f"{x.generate_random_string()}_{image3.filename}"
+            image3_path = os.path.join(UPLOAD_DIR, image3_filename)
+            image3.save(image3_path)
+            # Delete old image
+            if item.get('image3'):
+                old_image_path = os.path.join(UPLOAD_DIR, item['image3'])
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
 
         # Update the item in the database
         update_query = {
@@ -1103,35 +1101,36 @@ def update_item(key):
                 item_name: @item_name, 
                 item_price_per_night: @item_price_per_night,
                 item_splash_image: @item_splash_image,
+                image2: @image2,
+                image3: @image3,
                 item_lat: @item_lat,
                 item_lon: @item_lon,
                 item_stars: @item_stars,
-                item_updated_at: @item_updated_at,
-                item_image2: @image2,
-                item_image3: @image3
+                item_updated_at: @item_updated_at
             } IN items
             """,
             "bindVars": {
                 "key": key,
                 "item_name": item_name,
                 "item_price_per_night": int(item_price_per_night),
-                "item_splash_image": splash_image_filename or item.get('item_splash_image'),
+                "item_splash_image": splash_image_filename,
+                "image2": image2_filename,
+                "image3": image3_filename,
                 "item_lat": round(random.uniform(55.65, 55.7), 4),
                 "item_lon": round(random.uniform(12.55, 12.6), 4),
                 "item_stars": round(random.uniform(3.0, 5.0), 1),
-                "item_updated_at": int(time.time()),
-                "item_image2": image2_filename or item.get('image2'),
-                "item_image3": image3_filename or item.get('image3')
+                "item_updated_at": int(time.time())
             }
         }
 
-        result = x.arango(update_query)
+        x.arango(update_query)
         
-        return "Item updated successfully"
+        response.status = 303
+        response.set_header('Location', '/partner_properties')
     except Exception as ex:
         return {"error": str(ex)}
-    finally:
-        pass
+
+
 ##############################
 @post("/block_item/<key>")
 def _(key):
@@ -1171,13 +1170,11 @@ def _(key):
         
         response.status = 303
         response.set_header('Location', '/')
-        return
     except Exception as ex:
         ic(ex)
         return "An error occurred"
     finally:
         pass
-
 
 ##############################
 # BOOKING

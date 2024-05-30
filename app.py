@@ -371,8 +371,11 @@ def update_profile():
         ic(ex)
         return str(ex)
     
-##############################
+@get("/partner_properties")
+def _():
+    return template("_youreproperty.html")
 
+##############################
 @post("/verification_email_delete")
 def send_verification_email_delete():
     user_email = request.forms.get("user_email")

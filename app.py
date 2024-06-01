@@ -294,6 +294,9 @@ def login_post():
         user_email = request.forms.get("user_email")
         user_password = request.forms.get("user_password")
 
+        is_role = validate_user_role()
+        is_admin_role = validate_admin()
+
         res = {
             "query": "FOR user IN users FILTER user.user_email == @user_email RETURN user",
             "bindVars": {"user_email": user_email}
@@ -317,13 +320,13 @@ def login_post():
                         return
                     else:
                         error_message = "Your password is wrong"
-                        return template("login_wu_mixhtml.html", error_message=error_message)
+                        return template("login_wu_mixhtml.html", error_message=error_message, is_role=is_role, is_admin_role=is_admin_role)
                 else:
                     error_message = "Only verified users can login"
-                    return template("login_wu_mixhtml.html", error_message=error_message)
+                    return template("login_wu_mixhtml.html", error_message=error_message, is_role=is_role, is_admin_role=is_admin_role)
         else:
             error_message = "Incorrect email or password"
-            return template("login_wu_mixhtml.html", error_message=error_message)
+            return template("login_wu_mixhtml.html", error_message=error_message, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         print("An error occurred:", ex)
         return "An error occurred while processing your request"
@@ -342,7 +345,8 @@ def _():
         user = sessions[user_session_id]
         is_role = validate_user_role()
         is_logged = validate_user_logged()
-        return template("user_profile", user=user, is_role=is_role, is_logged=is_logged)
+        is_admin_role = validate_admin()
+        return template("user_profile", user=user, is_role=is_role, is_logged=is_logged, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
@@ -428,7 +432,8 @@ def get_partner_properties():
         your_items = x.arango(your_items_query)
 
         # Render HTML template with retrieved items
-        return template("partner_items.html", your_items=your_items['result'], is_logged=is_logged)
+        is_admin_role = validate_admin()
+        return template("partner_items.html", your_items=your_items['result'], is_logged=is_logged, is_admin_role=is_admin_role)
 
     except Exception as ex:
         # Handle any exceptions
@@ -713,8 +718,16 @@ def _():
         
         ic(active_users)
         ic(blocked_users)
+
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
+        is_admin_role = validate_admin()
         
-        return template("users", active_users=active_users["result"], blocked_users=blocked_users["result"])
+        return template("users", active_users=active_users["result"], blocked_users=blocked_users["result"], is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

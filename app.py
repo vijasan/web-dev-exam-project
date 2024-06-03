@@ -62,11 +62,6 @@ def _(file_name):
     return static_file(file_name+".js", ".")
 
 ##############################
-@get("/test")
-def _():
-    return [{"name":"one"}]
-
-##############################
 @get("/images/<item_splash_image>")
 def serve_image(item_splash_image):
     # Check if the requested image exists in the current directory
@@ -109,9 +104,14 @@ def home():
 @get("/signup")
 def _():
     try:
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
         is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
         is_admin_role = validate_admin()
-        return template("signup_wu_mixhtml.html", is_role=is_role, is_admin_role=is_admin_role)
+        return template("signup_wu_mixhtml.html", is_logged=is_logged,is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         print("there was a problem loading the page")
         print(ex)
@@ -286,9 +286,14 @@ def _(page_number):
 def login():
     try:
         x.no_cache()
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
         is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
         is_admin_role = validate_admin()
-        return template("login_wu_mixhtml.html", is_role=is_role, error_message=None, is_admin_role=is_admin_role)
+        return template("login_wu_mixhtml.html", is_logged=is_logged,is_role=is_role, error_message=None, is_admin_role=is_admin_role)
     except Exception as ex:
         print(ex)
         return str(ex)
@@ -420,27 +425,28 @@ def update_profile():
 @get("/partner_properties")
 def get_partner_properties():
     try:
-        # Ensure user is logged in and has appropriate role
         is_logged = validate_user_logged()
-        validate_user_role()
+        print("user is logged in?: ")
+        print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
+        is_admin_role = validate_admin()
 
-        # Retrieve active user's ID from cookie
         active_user = request.get_cookie("user_id")
         if not active_user:
             return "User ID not found in cookies"
 
-        # Query to fetch user's items from ArangoDB
-        your_items_query = {
+        query = {
             "query": "FOR item IN items FILTER item.item_user == @key RETURN item",
             "bindVars": {"key": active_user}
         }
 
-        # Execute the query
-        your_items = x.arango(your_items_query)
+        your_items = x.arango(query)
 
         # Render HTML template with retrieved items
         is_admin_role = validate_admin()
-        return template("partner_items.html", your_items=your_items['result'], is_logged=is_logged, is_admin_role=is_admin_role)
+        return template("partner_items.html", your_items=your_items['result'], is_logged=is_logged, is_admin_role=is_admin_role, is_role=is_role)
 
     except Exception as ex:
         # Handle any exceptions
@@ -450,11 +456,6 @@ def get_partner_properties():
 @post("/delete_item/<item_id>")
 def delete_item(item_id):
     try:
-        # Ensure user is logged in and has appropriate role
-        validate_user_logged()
-        validate_user_role()
-
-        # Delete the item from ArangoDB
         delete_query = {
             "query": "REMOVE { _key: @key } IN items",
             "bindVars": {"key": item_id}
@@ -577,59 +578,6 @@ def _():
     response.status = 303
     response.set_header('Location', '/')
     return
-
-
-##############################
-@get("/api")
-def _():
-    return x.test()
-
-##############################
-@post("/toogle_item_block")
-def _():
-    try:
-        item_id = request.forms.get("item_id", '')
-        return f"""
-        <template mix-target="[id='{item_id}']" mix-replace>
-            xxxxx
-        </template>
-        """
-    except Exception as ex:
-        ic(ex)
-        return ex
-    finally:
-        pass
-    
-##############################
-@get("/arango/items")
-def _():
-    try:
-        q = {"query":"FOR item IN items LIMIT 1 RETURN item"}
-        items = x.arango(q)
-        return items
-    except Exception as ex:
-        ic(ex)
-        return ex
-    finally:
-        pass
-
-##############################
-@delete("/arango/items/<key>")
-def _(key):
-    try:
-        dynamic = {"_key": key}
-        q = {"query":"REMOVE @dynamic IN items RETURN OLD", 
-             "bindVars":{
-                            "dynamic": dynamic
-                        }
-            }
-        items = x.arango(q)
-        return items
-    except Exception as ex:
-        ic(ex)
-        return ex
-    finally:
-        pass
 
 ##############################
 @post("/arango/items")
@@ -792,7 +740,20 @@ def _(key):
 
 @get("/forgot-password")
 def forgot_password():
-    return template("forgot-password.html")
+    try:
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
+        is_admin_role = validate_admin()
+        return template("forgot-password.html", is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
+    except Exception as ex:
+        ic(ex)
+    finally:
+        pass
+    
 
 ##############################
 @post("/forgot-password")
@@ -819,6 +780,9 @@ def handle_forgot_password():
 @get("/reset-password/<key>")
 def reset_password(key):
     try:
+        is_logged = validate_user_logged()
+        is_role = validate_user_role()
+        is_admin_role = validate_admin()
         query = {
             "query": "FOR user IN users FILTER user._key == @key RETURN user",
             "bindVars": {"key": key}
@@ -832,7 +796,7 @@ def reset_password(key):
         user = users[0]  # There should be only one item with the specified ID
         ic(user)
         
-        return template("reset-password.html", key=key, user=user)
+        return template("reset-password.html", key=key, user=user, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return str(ex)
@@ -907,9 +871,14 @@ UPLOAD_DIR = "uploads/images"
 @get("/add_item")
 def add_item_form():
     try:
-        validate_user_logged
-        validate_user_role
-        return template("add_item.html")
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
+        is_admin_role = validate_admin()
+        return template("add_item.html", is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         print("There was a problem loading the page:", ex)
         return str(ex)
@@ -987,8 +956,13 @@ def add_item():
 @get('/edit_item/<key>')
 def _(key):
     try:
-        validate_user_logged
-        validate_user_role
+        is_logged = validate_user_logged()
+        print("user is logged in?: ")
+        print(is_logged)
+        is_role = validate_user_role()
+        print("is user a partner?: ")
+        print(is_role)
+        is_admin_role = validate_admin()
         item_key_data = key
         item_key_name = "_key"
         query = {
@@ -1004,12 +978,10 @@ def _(key):
         item = items[0]  # There should be only one item with the specified ID
         title = f"Edit your property"
         ic(item)
-        is_logged = validate_user_logged()
-        print(is_logged)
         return template("edit_item",
                         key=key, 
                         title=title,
-                        item=item, is_logged=is_logged)
+                        item=item, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

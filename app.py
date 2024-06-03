@@ -821,8 +821,14 @@ def handle_reset_password(key):
         confirm_password = request.forms.get("confirm_password")
 
         if password != confirm_password:
-            return "Passwords do not match"
-        
+            return f"""
+                <template mix-target="[id='error-message']" mix-replace>
+                <p style="color:red">
+                Passwords do not match
+                </p>
+                </template>
+                """
+
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
         update_query = {
@@ -838,7 +844,7 @@ def handle_reset_password(key):
         x.arango(update_query)
 
         return f"""
-                    <template mix-target="[id='error-message']" mix-replace>
+                    <template mix-target="[id='success-message']" mix-replace>
                     <p>
                     Your password has been reset
                     </p>

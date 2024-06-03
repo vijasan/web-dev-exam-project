@@ -828,10 +828,9 @@ def handle_reset_password(key):
                 </p>
                 </template>
                 """
-
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-        update_query = {
+        else:
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            update_query = {
             "query": """
                 UPDATE { _key: @key, user_password: @password }
                 IN users
@@ -839,11 +838,11 @@ def handle_reset_password(key):
             "bindVars": {
                 "key": key,
                 "password": hashed_password
+                }
             }
-        }
-        x.arango(update_query)
+            x.arango(update_query)
 
-        return f"""
+            return f"""
                     <template mix-target="[id='success-message']" mix-replace>
                     <p>
                     Your password has been reset

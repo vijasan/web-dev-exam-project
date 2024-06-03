@@ -41,6 +41,13 @@ def validate_admin():
         return True
     else:
         return False
+
+def validate_customer():
+    user_role = request.get_cookie("role")
+    if user_role == "customer":
+        return True
+    else:
+        return False
         
 
 ##############################
@@ -665,9 +672,6 @@ def _(key):
 @get("/rooms/<id>")
 def _(id):
     try:
-        validate_user_logged
-        if validate_user_logged() == False:
-            return "please login first"
                 
         item_key_data = id
         item_key_name = "_key"
@@ -689,11 +693,12 @@ def _(id):
         is_role = validate_user_role()
 
         is_admin_role = validate_admin()
+        is_customer_role=validate_customer()
 
         return template("rooms",
                         id=id, 
                         title=title,
-                        item=item, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
+                        item=item, is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role, is_customer_role=is_customer_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}

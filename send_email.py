@@ -1,10 +1,13 @@
 import smtplib, ssl
+from bottle import request
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_verification_email(receiver_email, verification_code):
     sender_email = "skroyer09@gmail.com"
     password = "vkxq xwhj yaxn rqjs"
+
+    base_url = f"{request.urlparts.scheme}://{request.urlparts.netloc}/"
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "Verify your email address"
@@ -21,7 +24,7 @@ def send_verification_email(receiver_email, verification_code):
       <body>
         <p>Hi,<br>
           Please verify your email by clicking the link below:<br>
-          <a href="http://127.0.0.1/verify?code={verification_code}">Verify Email</a>
+          <a href="{base_url}verify?code={verification_code}">Verify Email</a>
         </p>
       </body>
     </html>

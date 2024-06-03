@@ -1142,11 +1142,13 @@ def _(key):
             if email_result["result"]:
                 item_email = email_result["result"][0]
                 
-                # Send email based on the item's blocked status
-                if blocked:
-                    x.send_block_property_email(item_email)
-                else:
-                    x.send_unblock_property_email(item_email)
+                # Check if the email exists
+                if item_email:
+                    # Send email based on the item's blocked status
+                    if blocked:
+                        x.send_block_property_email(item_email)
+                    else:
+                        x.send_unblock_property_email(item_email)
         
         response.status = 303
         response.set_header('Location', '/')
@@ -1156,6 +1158,7 @@ def _(key):
         return "An error occurred"
     finally:
         pass
+
 
 ##############################
 # BOOKING

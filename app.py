@@ -748,7 +748,7 @@ def forgot_password():
         print("is user a partner?: ")
         print(is_role)
         is_admin_role = validate_admin()
-        return template("forgot-password.html", is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
+        return template("forgot-password.html",is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
     finally:
@@ -766,12 +766,24 @@ def handle_forgot_password():
         }
         user = x.arango(user_query)
         if not user["result"]:
-            raise Exception("Email not found")
+             return f"""
+                <template mix-target="[id='error-message']" mix-replace>
+                <p style="color:red">
+                Your email is not registered
+                </p>
+                </template>
+                """
 
         user = user["result"][0]
         x.send_reset_email(email, user["_key"])
 
-        return "Password reset email sent"
+        # If email is correct and reset email is sent successfully, set forgot_password_message
+        return f"""
+                <template mix-target="[id='success-message']" mix-replace>
+                <p>An email has been sent to {email}</p>
+                </template>
+                """
+
     except Exception as ex:
         ic(ex)
         return str(ex)
@@ -825,7 +837,13 @@ def handle_reset_password(key):
         }
         x.arango(update_query)
 
-        return "Password reset successfully"
+        return f"""
+                    <template mix-target="[id='error-message']" mix-replace>
+                    <p>
+                    Your password has been reset
+                    </p>
+                    </template>
+                """
     except Exception as ex:
         ic(ex)
         return str(ex)

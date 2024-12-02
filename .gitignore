@@ -4,3 +4,8 @@ package.json
 package-lock.json
 credentials.py
 arangodb
+pyvenv.cfg
+Lib 
+Scripts
+arangodb
+Include

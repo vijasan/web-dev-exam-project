@@ -1,0 +1,5 @@
+1. Rebuld docker-container (docker-compose build), for at installere nye dependencies. 
+2. lav en .env fil med følgende: mapbox_token=din_token
+3. Docker-compose up 
+
+NOTE: crendentials.py fjernet fra .gitignore 

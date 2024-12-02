@@ -672,19 +672,26 @@ def _():
         ic(active_users)
         ic(blocked_users)
 
+        # Check if the user is logged in
         is_logged = validate_user_logged()
-        print("user is logged in?: ")
-        print(is_logged)
+        print("user is logged in?: ", is_logged)
+
+        # Check if the user has the correct role
         is_role = validate_user_role()
-        print("is user a partner?: ")
-        print(is_role)
+        print("is user a partner?: ", is_role)
+
+        # Check if the user has an admin role
         is_admin_role = validate_admin()
+        print("is user an admin?: ", is_admin_role)
+        
+        # Return the template only if user is logged in and an admin
+        if not is_logged or not is_admin_role:
+            return template("unauthorized")  # Or redirect to login page
         
         return template("users", active_users=active_users["result"], blocked_users=blocked_users["result"], is_logged=is_logged, is_role=is_role, is_admin_role=is_admin_role)
     except Exception as ex:
         ic(ex)
         return {"error": str(ex)}
-
 ##############################
 @get("/users/<key>")
 def get_user(key):
